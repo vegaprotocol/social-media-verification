@@ -10,6 +10,8 @@ services:
       MONGO_INITDB_ROOT_PASSWORD: password123
   social-media-verification:
     image: social-media-verification
+    ports:
+      - "5000:5000"
     depends_on:
       - mongo
     environment:
@@ -24,4 +26,5 @@ services:
       TWITTER_SEARCH_TEXT: "${TWITTER_SEARCH_TEXT}"
       SIGNATURE_INVALID_REPLY: "${SIGNATURE_INVALID_REPLY}"
       FORMAT_INVALID_REPLY: "${FORMAT_INVALID_REPLY}"
-      SLEEP_DURATION: ${SLEEP_DURATION}
+      SUCCESS_REPLY: "${SUCCESS_REPLY}"
+      SLEEP_DURATION: "${SLEEP_DURATION}"

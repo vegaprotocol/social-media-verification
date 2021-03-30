@@ -7,6 +7,9 @@ import sys
 import warnings
 import os
 import time
+import flask
+import threading
+import traceback
 
 from twython import Twython
 
@@ -20,6 +23,7 @@ access_secret = os.environ['TWITTER_ACCESS_SECRET']
 twitter_search_text = os.environ['TWITTER_SEARCH_TEXT']
 format_invalid_reply = os.environ['FORMAT_INVALID_REPLY']
 signature_invalid_reply = os.environ['SIGNATURE_INVALID_REPLY']
+success_reply = os.environ['SUCCESS_REPLY']
 mongo_host = os.environ['MONGO_HOST']
 mongo_port = os.environ['MONGO_PORT']
 mongo_user = os.environ['MONGO_USER']
@@ -43,7 +47,7 @@ def get_db_collection(name):
     client = pymongo.MongoClient(f"mongodb://{mongo_user}:{mongo_password}@{mongo_host}:{mongo_port}")
     db = client["admin"]
     return db[name]
-    
+
 def store_verified_party(screen_name, pub_key):
     collection = get_db_collection("identities")
     query = {"pub_key": pub_key}
@@ -68,6 +72,14 @@ def is_tweet_processed(tweet_id):
         return False
     return True
 
+def get_parties():
+    collection = get_db_collection("identities")
+    doc = collection.find()
+    parties = []
+    for item in doc:
+        parties.append({'party_id': item['pub_key'], 'twitter_handle': item['twitter_handle']})
+    return parties
+
 def process_tweet(tweet, twapi):
     try:
         tweet_id = tweet['id']
@@ -82,6 +94,8 @@ def process_tweet(tweet, twapi):
             if sig_valid:
                 store_verified_party(screen_name, pub_key)
                 store_tweet_record(tweet_id, screen_name, "PASSED")
+                msg = f'@{screen_name} {success_reply}'
+                response = twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
                 print("signature verified!")
             else:
                 print("invalid sig")
@@ -91,6 +105,7 @@ def process_tweet(tweet, twapi):
         else:
             print("tweet already processed")
     except:
+        traceback.print_exc()
         print("cannot parse tweet")
         msg = f'@{screen_name} {format_invalid_reply}'
         twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
@@ -109,7 +124,23 @@ def search_tweets():
     for tweet in results['statuses']:
         process_tweet(tweet, twapi)
 
-while True:
-    search_tweets()
-    time.sleep(sleep_duration)
+def search():
+    while True:
+        try:
+            search_tweets()
+        except:
+            pass
+        time.sleep(sleep_duration)
 
+t = threading.Thread(target=search)
+t.start()
+
+app = flask.Flask(__name__)
+app.config["DEBUG"] = True
+
+@app.route('/parties', methods=['GET'])
+def parties():
+    return flask.jsonify(get_parties())
+
+
+app.run(host='0.0.0.0')
