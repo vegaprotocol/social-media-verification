@@ -11,7 +11,7 @@ import flask
 import threading
 import traceback
 
-from twython import Twython
+from twython import Twython, TwythonError
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
