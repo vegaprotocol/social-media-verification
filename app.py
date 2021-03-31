@@ -21,7 +21,7 @@ if not sys.warnoptions:
 #
 mongo_secret_name = os.environ["MONGO_SECRET_NAME"]
 mongo_secret = get_json_secret(mongo_secret_name)
-db_name = mongo_secret['DB_NAME']
+db_name = mongo_secret["DB_NAME"]
 DB_URL = get_mongodb_url_from_secret(mongo_secret)
 
 DB_CONN = pymongo.MongoClient(DB_URL).get_database(db_name)
@@ -98,7 +98,7 @@ def is_tweet_processed(tweet_id):
 
 def get_parties():
     start_time = timer()
-    log_line = f"Get Parties"
+    log_line = "Get Parties"
     try:
         collection = get_db_collection("identities")
         doc = collection.find()
@@ -110,15 +110,15 @@ def get_parties():
                     "twitter_handle": item["twitter_handle"],
                 }
             )
-        log_line += f", parties_count={len(parties)}, status=\"SUCCESS\""
+        log_line += f', parties_count={len(parties)}, status="SUCCESS"'
         return parties
     except Exception as err:
-        log_line += f", error=\"{err}\", status=\"ERROR\""
+        log_line += f', error="{err}", status="ERROR"'
         raise
     finally:
         end_time = timer()
         elapsed_time_ms = int((end_time - start_time) * 1000)
-        log_line += f", time_ms=\"{elapsed_time_ms}\""
+        log_line += f', time_ms="{elapsed_time_ms}"'
         print(log_line)
 
 
@@ -129,11 +129,15 @@ def process_tweet(tweet, twapi):
     try:
         tweet_id = tweet["id"]
         tweet_processed = is_tweet_processed(tweet_id)
-        log_line += f", tweet_id=\"{tweet_id}\", tweet_processed=\"{tweet_processed}\""
+        log_line += (
+            f', tweet_id="{tweet_id}", tweet_processed="{tweet_processed}"'
+        )
         if not tweet_processed:
             screen_name = tweet["user"]["screen_name"]
             full_text = tweet["full_text"]
-            log_line += f", screen_name=\"{screen_name}\", full_text=\"{full_text}\""
+            log_line += (
+                f', screen_name="{screen_name}", full_text="{full_text}"'
+            )
             tweet_parts = list(
                 filter(
                     lambda x: len(x) > 0,
@@ -143,41 +147,45 @@ def process_tweet(tweet, twapi):
             sig = tweet_parts[-1]
             pub_key = tweet_parts[-2]
             sig_valid = is_sig_valid(sig, screen_name, pub_key)
-            log_line += f", sig=\"{sig}\", pub_key=\"{pub_key}\", sig_valid=\"{sig_valid}\""
+            log_line += (
+                f', sig="{sig}", pub_key="{pub_key}"'
+                f', sig_valid="{sig_valid}"'
+            )
             if sig_valid:
                 store_verified_party(screen_name, pub_key)
                 store_tweet_record(tweet_id, screen_name, "PASSED")
                 msg = f"@{screen_name} {TWITTER_REPLY_SUCCESS}"
-                log_line += f", reply_msg=\"{msg}\""
+                log_line += f', reply_msg="{msg}"'
                 twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
                 replied_to_user = True
-                log_line += f", status=\"SUCCESS\""
+                log_line += ', status="SUCCESS"'
             else:
                 store_tweet_record(tweet_id, screen_name, "INVALID")
                 msg = f"@{screen_name} {TWITTER_REPLY_INVALID_SIGNATURE}"
-                log_line += f", reply_msg=\"{msg}\""
+                log_line += f', reply_msg="{msg}"'
                 twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
                 replied_to_user = True
-                log_line += f", status=\"INVALID\""
+                log_line += ', status="INVALID"'
         else:
-            log_line += f", status=\"SKIP\""
+            log_line += ', status="SKIP"'
             replied_to_user = False
     except Exception as err:
         traceback.print_exc()
         print(err)
         msg = f"@{screen_name} {TWITTER_REPLY_INVALID_FORMAT}"
-        log_line += f", error=\"{err}\", reply_msg=\"{msg}\""
+        log_line += f', error="{err}", reply_msg="{msg}"'
         twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
         replied_to_user = True
         store_tweet_record(tweet_id, screen_name, "UNPARSEABLE")
-        log_line += f", status=\"ERROR\""
+        log_line += ', status="ERROR"'
     finally:
         end_time = timer()
         elapsed_time_ms = int((end_time - start_time) * 1000)
-        log_line += f", time_ms=\"{elapsed_time_ms}\""
+        log_line += f', time_ms="{elapsed_time_ms}"'
         print(log_line)
-    
+
     return replied_to_user
+
 
 def search_tweets(twapi: Twython) -> list:
     start_time = timer()
@@ -187,21 +195,21 @@ def search_tweets(twapi: Twython) -> list:
             q=TWITTER_SEARCH_TEXT, count=50, tweet_mode="extended"
         )
         tweets = list(reversed(results["statuses"]))
-        log_line += f", tweets_count=\"{len(tweets)}\", status=\"SUCCESS\""
+        log_line += f', tweets_count="{len(tweets)}", status="SUCCESS"'
         return tweets
     except Exception as err:
-        log_line += f", error=\"{err}\", status=\"ERROR\""
+        log_line += f', error="{err}", status="ERROR"'
         raise
     finally:
         end_time = timer()
         elapsed_time_ms = int((end_time - start_time) * 1000)
-        log_line += f", time_ms=\"{elapsed_time_ms}\""
+        log_line += f', time_ms="{elapsed_time_ms}"'
         print(log_line)
 
 
 def process_tweets(twapi: Twython, tweets: list):
     start_time = timer()
-    log_line = f"Processing tweets count=\"{len(tweets)}\""
+    log_line = f'Processing tweets count="{len(tweets)}"'
     try:
         response_count = 0
         for tweet in tweets:
@@ -210,29 +218,34 @@ def process_tweets(twapi: Twython, tweets: list):
                 response_count += 1
                 # sleep for 1 second after replying to user
                 time.sleep(1)
-        log_line += f", response_count=\"{response_count}\", status=\"SUCCESS\""
+        log_line += f', response_count="{response_count}", status="SUCCESS"'
     except Exception as err:
-        log_line += f", error=\"{err}\", status=\"ERROR\""
+        log_line += f', error="{err}", status="ERROR"'
         raise
     finally:
         end_time = timer()
         elapsed_time_ms = int((end_time - start_time) * 1000)
-        log_line += f", time_ms=\"{elapsed_time_ms}\""
+        log_line += f', time_ms="{elapsed_time_ms}"'
         print(log_line)
 
 
 def handle_request(request: flask.Request):
-    if request.path.endswith('/parties'):
+    if request.path.endswith("/parties"):
         return flask.jsonify(get_parties())
-    elif request.path.endswith('/process-tweets'):
+    elif request.path.endswith("/process-tweets"):
         try:
-            twapi = Twython(TWITTER_CONSUMER_KEY, TWITTER_CONSUMER_SECRET, TWITTER_ACCESS_TOKEN, TWITTER_ACCESS_SECRET)
+            twapi = Twython(
+                TWITTER_CONSUMER_KEY,
+                TWITTER_CONSUMER_SECRET,
+                TWITTER_ACCESS_TOKEN,
+                TWITTER_ACCESS_SECRET,
+            )
             tweets = search_tweets(twapi)
             process_tweets(twapi, tweets)
             return flask.jsonify({"status": "success"})
         except Exception as err:
             traceback.print_exc()
             print(err)
-            return flask.jsonify( {"status": "failed", "error": str(err)}), 500
+            return flask.jsonify({"status": "failed", "error": str(err)}), 500
     else:
         flask.abort(404, description="Resource not found")
