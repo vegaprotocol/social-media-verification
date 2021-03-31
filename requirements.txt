@@ -1,4 +1,4 @@
-pymongo
-twython
-ed25519
-flask
+pymongo==3.11.3
+twython==3.8.2
+ed25519==1.5
+flask==1.1.2
