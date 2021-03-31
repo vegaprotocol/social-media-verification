@@ -149,14 +149,14 @@ def process_tweet(tweet, twapi):
                 store_tweet_record(tweet_id, screen_name, "PASSED")
                 msg = f"@{screen_name} {TWITTER_REPLY_SUCCESS}"
                 log_line += f", reply_msg=\"{msg}\""
-                #twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
+                twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
                 replied_to_user = True
                 log_line += f", status=\"SUCCESS\""
             else:
                 store_tweet_record(tweet_id, screen_name, "INVALID")
                 msg = f"@{screen_name} {TWITTER_REPLY_INVALID_SIGNATURE}"
                 log_line += f", reply_msg=\"{msg}\""
-                #twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
+                twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
                 replied_to_user = True
                 log_line += f", status=\"INVALID\""
         else:
@@ -167,7 +167,7 @@ def process_tweet(tweet, twapi):
         print(err)
         msg = f"@{screen_name} {TWITTER_REPLY_INVALID_FORMAT}"
         log_line += f", error=\"{err}\", reply_msg=\"{msg}\""
-        #twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
+        twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
         replied_to_user = True
         store_tweet_record(tweet_id, screen_name, "UNPARSEABLE")
         log_line += f", status=\"ERROR\""
@@ -183,10 +183,9 @@ def search_tweets(twapi: Twython) -> list:
     start_time = timer()
     log_line = "Searching tweets"
     try:
-        #results = twapi.search(
-        #    q=TWITTER_SEARCH_TEXT, count=50, tweet_mode="extended"
-        #)
-        results = {"statuses": []}
+        results = twapi.search(
+            q=TWITTER_SEARCH_TEXT, count=50, tweet_mode="extended"
+        )
         tweets = list(reversed(results["statuses"]))
         log_line += f", tweets_count=\"{len(tweets)}\", status=\"SUCCESS\""
         return tweets
