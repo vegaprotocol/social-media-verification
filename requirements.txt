@@ -1,4 +1,7 @@
 pymongo==3.11.3
 twython==3.8.2
 ed25519==1.5
-flask==1.1.2
+#flask==1.1.2
+dnspython==2.1.0
+google-cloud-secret-manager==2.3.0
+google-cloud-logging==2.3.1
