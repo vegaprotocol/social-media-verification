@@ -156,6 +156,7 @@ def process_tweet(tweet, twapi):
                 msg = f"@{screen_name} {TWITTER_REPLY_SUCCESS}"
                 log_line += f', reply_msg="{msg}"'
                 try:
+                    twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
                     twapi.send_direct_message(event = {
                         "type": "message_create",
                         "message_create": {
