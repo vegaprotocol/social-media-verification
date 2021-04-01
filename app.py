@@ -132,6 +132,7 @@ def process_tweet(tweet, twapi):
         )
         if not tweet_processed:
             screen_name = tweet["user"]["screen_name"]
+            user_id = tweet["user"]["id"]
             full_text = tweet["full_text"]
             log_line += (
                 f', screen_name="{screen_name}", full_text="{full_text}"'
@@ -154,16 +155,28 @@ def process_tweet(tweet, twapi):
                 store_tweet_record(tweet_id, screen_name, "PASSED")
                 msg = f"@{screen_name} {TWITTER_REPLY_SUCCESS}"
                 log_line += f', reply_msg="{msg}"'
-                twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
-                replied_to_user = True
-                log_line += ', status="SUCCESS"'
+                try:
+                    twapi.send_direct_message(event = {
+                        "type": "message_create",
+                        "message_create": {
+                            "target": {"recipient_id": user_id},
+                            "message_data": {"text": "Please reply to this message with the Ethereum address that you would like to use to receive prizes."}
+                        }
+                    })
+                    replied_to_user = True
+                    log_line += ', status="SUCCESS"'
+                except Exception as err:
+                    traceback.print_exc()
             else:
                 store_tweet_record(tweet_id, screen_name, "INVALID")
                 msg = f"@{screen_name} {TWITTER_REPLY_INVALID_SIGNATURE}"
                 log_line += f', reply_msg="{msg}"'
-                twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
-                replied_to_user = True
-                log_line += ', status="INVALID"'
+                try:
+                    twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
+                    replied_to_user = True
+                    log_line += ', status="INVALID"'
+                except Exception as err:
+                    traceback.print_exc()
         else:
             log_line += ', status="SKIP"'
             replied_to_user = False
