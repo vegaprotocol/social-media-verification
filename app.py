@@ -38,9 +38,11 @@ TWITTER_ACCESS_TOKEN = twitter_secret["ACCESS_TOKEN"]
 TWITTER_ACCESS_SECRET = twitter_secret["ACCESS_SECRET"]
 # Load from env variables
 TWITTER_SEARCH_TEXT = os.environ["TWITTER_SEARCH_TEXT"]
+TWITTER_SEARCH_COUNT = int(os.getenv("TWITTER_SEARCH_COUNT", "50"))
 TWITTER_REPLY_SUCCESS = os.environ["TWITTER_REPLY_SUCCESS"]
 TWITTER_REPLY_INVALID_FORMAT = os.environ["TWITTER_REPLY_INVALID_FORMAT"]
 TWITTER_REPLY_INVALID_SIGNATURE = os.environ["TWITTER_REPLY_INVALID_SIGNATURE"]
+TWITTER_REPLY_DELAY = float(os.getenv("TWITTER_REPLY_DELAY", "1.0"))
 
 
 def is_sig_valid(sig, msg, pub_key):
@@ -57,12 +59,8 @@ def is_sig_valid(sig, msg, pub_key):
     return False
 
 
-def get_db_collection(name):
-    return DB_CONN.get_collection(name)
-
-
 def store_verified_party(screen_name, pub_key):
-    collection = get_db_collection("identities")
+    collection = DB_CONN.get_collection("identities")
     query = {"pub_key": pub_key}
     doc = collection.find(query)
     if doc.count() == 0:
@@ -74,7 +72,7 @@ def store_verified_party(screen_name, pub_key):
 
 
 def store_tweet_record(tweet_id, screen_name, status):
-    collection = get_db_collection("tweets")
+    collection = DB_CONN.get_collection("tweets")
     query = {"tweet_id": tweet_id}
     doc = collection.find(query)
     if doc.count() == 0:
@@ -88,7 +86,7 @@ def store_tweet_record(tweet_id, screen_name, status):
 
 
 def is_tweet_processed(tweet_id):
-    collection = get_db_collection("tweets")
+    collection = DB_CONN.get_collection("tweets")
     query = {"tweet_id": tweet_id}
     doc = collection.find(query)
     if doc.count() == 0:
@@ -100,7 +98,7 @@ def get_parties():
     start_time = timer()
     log_line = "Get Parties"
     try:
-        collection = get_db_collection("identities")
+        collection = DB_CONN.get_collection("identities")
         doc = collection.find()
         parties = []
         for item in doc:
@@ -192,7 +190,9 @@ def search_tweets(twapi: Twython) -> list:
     log_line = "Searching tweets"
     try:
         results = twapi.search(
-            q=TWITTER_SEARCH_TEXT, count=50, tweet_mode="extended"
+            q=TWITTER_SEARCH_TEXT,
+            count=TWITTER_SEARCH_COUNT,
+            tweet_mode="extended",
         )
         tweets = list(reversed(results["statuses"]))
         log_line += f', tweets_count="{len(tweets)}", status="SUCCESS"'
@@ -217,7 +217,7 @@ def process_tweets(twapi: Twython, tweets: list):
             if replied_to_user:
                 response_count += 1
                 # sleep for 1 second after replying to user
-                time.sleep(1)
+                time.sleep(TWITTER_REPLY_DELAY)
         log_line += f', response_count="{response_count}", status="SUCCESS"'
     except Exception as err:
         log_line += f', error="{err}", status="ERROR"'
