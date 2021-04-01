@@ -7,27 +7,42 @@ import warnings
 import os
 import time
 import flask
-import threading
 import traceback
+from timeit import default_timer as timer
 
-from twython import Twython, TwythonError
+from twython import Twython
+from helper import get_json_secret, get_mongodb_url_from_secret
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
 
-consumer_key = os.environ["TWITTER_CONSUMER_KEY"]
-consumer_secret = os.environ["TWITTER_CONSUMER_SECRET"]
-access_token = os.environ["TWITTER_ACCESS_TOKEN"]
-access_secret = os.environ["TWITTER_ACCESS_SECRET"]
-twitter_search_text = os.environ["TWITTER_SEARCH_TEXT"]
-format_invalid_reply = os.environ["FORMAT_INVALID_REPLY"]
-signature_invalid_reply = os.environ["SIGNATURE_INVALID_REPLY"]
-success_reply = os.environ["SUCCESS_REPLY"]
-mongo_host = os.environ["MONGO_HOST"]
-mongo_port = os.environ["MONGO_PORT"]
-mongo_user = os.environ["MONGO_USER"]
-mongo_password = os.environ["MONGO_PASSWORD"]
-sleep_duration = int(os.environ["SLEEP_DURATION"])
+#
+# Setup MongoDB connection
+#
+mongo_secret_name = os.environ["MONGO_SECRET_NAME"]
+mongo_secret = get_json_secret(mongo_secret_name)
+db_name = mongo_secret["DB_NAME"]
+DB_URL = get_mongodb_url_from_secret(mongo_secret)
+
+DB_CONN = pymongo.MongoClient(DB_URL).get_database(db_name)
+
+#
+# Setup Twitter Access Token
+#
+twitter_secret_name = os.environ["TWITTER_SECRET_NAME"]
+twitter_secret = get_json_secret(twitter_secret_name)
+# Load from secret
+TWITTER_CONSUMER_KEY = twitter_secret["CONSUMER_KEY"]
+TWITTER_CONSUMER_SECRET = twitter_secret["CONSUMER_SECRET"]
+TWITTER_ACCESS_TOKEN = twitter_secret["ACCESS_TOKEN"]
+TWITTER_ACCESS_SECRET = twitter_secret["ACCESS_SECRET"]
+# Load from env variables
+TWITTER_SEARCH_TEXT = os.environ["TWITTER_SEARCH_TEXT"]
+TWITTER_SEARCH_COUNT = int(os.getenv("TWITTER_SEARCH_COUNT", "50"))
+TWITTER_REPLY_SUCCESS = os.environ["TWITTER_REPLY_SUCCESS"]
+TWITTER_REPLY_INVALID_FORMAT = os.environ["TWITTER_REPLY_INVALID_FORMAT"]
+TWITTER_REPLY_INVALID_SIGNATURE = os.environ["TWITTER_REPLY_INVALID_SIGNATURE"]
+TWITTER_REPLY_DELAY = float(os.getenv("TWITTER_REPLY_DELAY", "1.0"))
 
 
 def is_sig_valid(sig, msg, pub_key):
@@ -44,15 +59,8 @@ def is_sig_valid(sig, msg, pub_key):
     return False
 
 
-def get_db_collection(name):
-    url = f"mongodb://{mongo_user}:{mongo_password}@{mongo_host}:{mongo_port}"
-    client = pymongo.MongoClient(url)
-    db = client["admin"]
-    return db[name]
-
-
 def store_verified_party(screen_name, pub_key):
-    collection = get_db_collection("identities")
+    collection = DB_CONN.get_collection("identities")
     query = {"pub_key": pub_key}
     doc = collection.find(query)
     if doc.count() == 0:
@@ -64,7 +72,7 @@ def store_verified_party(screen_name, pub_key):
 
 
 def store_tweet_record(tweet_id, screen_name, status):
-    collection = get_db_collection("tweets")
+    collection = DB_CONN.get_collection("tweets")
     query = {"tweet_id": tweet_id}
     doc = collection.find(query)
     if doc.count() == 0:
@@ -78,7 +86,7 @@ def store_tweet_record(tweet_id, screen_name, status):
 
 
 def is_tweet_processed(tweet_id):
-    collection = get_db_collection("tweets")
+    collection = DB_CONN.get_collection("tweets")
     query = {"tweet_id": tweet_id}
     doc = collection.find(query)
     if doc.count() == 0:
@@ -87,26 +95,47 @@ def is_tweet_processed(tweet_id):
 
 
 def get_parties():
-    collection = get_db_collection("identities")
-    doc = collection.find()
-    parties = []
-    for item in doc:
-        parties.append(
-            {
-                "party_id": item["pub_key"],
-                "twitter_handle": item["twitter_handle"],
-            }
-        )
-    return parties
+    start_time = timer()
+    log_line = "Get Parties"
+    try:
+        collection = DB_CONN.get_collection("identities")
+        doc = collection.find()
+        parties = []
+        for item in doc:
+            parties.append(
+                {
+                    "party_id": item["pub_key"],
+                    "twitter_handle": item["twitter_handle"],
+                }
+            )
+        log_line += f', parties_count={len(parties)}, status="SUCCESS"'
+        return parties
+    except Exception as err:
+        log_line += f', error="{err}", status="ERROR"'
+        raise
+    finally:
+        end_time = timer()
+        elapsed_time_ms = int((end_time - start_time) * 1000)
+        log_line += f', time_ms="{elapsed_time_ms}"'
+        print(log_line)
 
 
 def process_tweet(tweet, twapi):
+    start_time = timer()
+    log_line = f"Processing tweet={tweet}"
+    replied_to_user = False
     try:
         tweet_id = tweet["id"]
         tweet_processed = is_tweet_processed(tweet_id)
+        log_line += (
+            f', tweet_id="{tweet_id}", tweet_processed="{tweet_processed}"'
+        )
         if not tweet_processed:
             screen_name = tweet["user"]["screen_name"]
             full_text = tweet["full_text"]
+            log_line += (
+                f', screen_name="{screen_name}", full_text="{full_text}"'
+            )
             tweet_parts = list(
                 filter(
                     lambda x: len(x) > 0,
@@ -116,62 +145,107 @@ def process_tweet(tweet, twapi):
             sig = tweet_parts[-1]
             pub_key = tweet_parts[-2]
             sig_valid = is_sig_valid(sig, screen_name, pub_key)
+            log_line += (
+                f', sig="{sig}", pub_key="{pub_key}"'
+                f', sig_valid="{sig_valid}"'
+            )
             if sig_valid:
                 store_verified_party(screen_name, pub_key)
                 store_tweet_record(tweet_id, screen_name, "PASSED")
-                msg = f"@{screen_name} {success_reply}"
+                msg = f"@{screen_name} {TWITTER_REPLY_SUCCESS}"
+                log_line += f', reply_msg="{msg}"'
                 twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
-                print("signature verified!")
+                replied_to_user = True
+                log_line += ', status="SUCCESS"'
             else:
-                print("invalid sig")
                 store_tweet_record(tweet_id, screen_name, "INVALID")
-                msg = f"@{screen_name} {signature_invalid_reply}"
+                msg = f"@{screen_name} {TWITTER_REPLY_INVALID_SIGNATURE}"
+                log_line += f', reply_msg="{msg}"'
                 twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
+                replied_to_user = True
+                log_line += ', status="INVALID"'
         else:
-            print("tweet already processed")
-    except Exception:
+            log_line += ', status="SKIP"'
+            replied_to_user = False
+    except Exception as err:
         traceback.print_exc()
-        print("cannot parse tweet")
-        msg = f"@{screen_name} {format_invalid_reply}"
+        print(err)
+        msg = f"@{screen_name} {TWITTER_REPLY_INVALID_FORMAT}"
+        log_line += f', error="{err}", reply_msg="{msg}"'
         twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
+        replied_to_user = True
         store_tweet_record(tweet_id, screen_name, "UNPARSEABLE")
+        log_line += ', status="ERROR"'
+    finally:
+        end_time = timer()
+        elapsed_time_ms = int((end_time - start_time) * 1000)
+        log_line += f', time_ms="{elapsed_time_ms}"'
+        print(log_line)
+
+    return replied_to_user
 
 
-def search_tweets():
-    twapi = Twython(consumer_key, consumer_secret, access_token, access_secret)
+def search_tweets(twapi: Twython) -> list:
+    start_time = timer()
+    log_line = "Searching tweets"
     try:
         results = twapi.search(
-            q=twitter_search_text, count=50, tweet_mode="extended"
+            q=TWITTER_SEARCH_TEXT,
+            count=TWITTER_SEARCH_COUNT,
+            tweet_mode="extended",
         )
-    except TwythonError as e:
-        print(e)
-        return
-    results["statuses"].reverse()
-    tweet_count = len(results["statuses"])
-    print(f"Found {tweet_count} tweets")
-    for tweet in results["statuses"]:
-        process_tweet(tweet, twapi)
+        tweets = list(reversed(results["statuses"]))
+        log_line += f', tweets_count="{len(tweets)}", status="SUCCESS"'
+        return tweets
+    except Exception as err:
+        log_line += f', error="{err}", status="ERROR"'
+        raise
+    finally:
+        end_time = timer()
+        elapsed_time_ms = int((end_time - start_time) * 1000)
+        log_line += f', time_ms="{elapsed_time_ms}"'
+        print(log_line)
 
 
-def search():
-    while True:
+def process_tweets(twapi: Twython, tweets: list):
+    start_time = timer()
+    log_line = f'Processing tweets count="{len(tweets)}"'
+    try:
+        response_count = 0
+        for tweet in tweets:
+            replied_to_user = process_tweet(tweet, twapi)
+            if replied_to_user:
+                response_count += 1
+                # sleep for 1 second after replying to user
+                time.sleep(TWITTER_REPLY_DELAY)
+        log_line += f', response_count="{response_count}", status="SUCCESS"'
+    except Exception as err:
+        log_line += f', error="{err}", status="ERROR"'
+        raise
+    finally:
+        end_time = timer()
+        elapsed_time_ms = int((end_time - start_time) * 1000)
+        log_line += f', time_ms="{elapsed_time_ms}"'
+        print(log_line)
+
+
+def handle_request(request: flask.Request):
+    if request.path.endswith("/parties"):
+        return flask.jsonify(get_parties())
+    elif request.path.endswith("/process-tweets"):
         try:
-            search_tweets()
-        except Exception:
-            pass
-        time.sleep(sleep_duration)
-
-
-t = threading.Thread(target=search)
-t.start()
-
-app = flask.Flask(__name__)
-app.config["DEBUG"] = True
-
-
-@app.route("/parties", methods=["GET"])
-def parties():
-    return flask.jsonify(get_parties())
-
-
-app.run(host="0.0.0.0")
+            twapi = Twython(
+                TWITTER_CONSUMER_KEY,
+                TWITTER_CONSUMER_SECRET,
+                TWITTER_ACCESS_TOKEN,
+                TWITTER_ACCESS_SECRET,
+            )
+            tweets = search_tweets(twapi)
+            process_tweets(twapi, tweets)
+            return flask.jsonify({"status": "success"})
+        except Exception as err:
+            traceback.print_exc()
+            print(err)
+            return flask.jsonify({"status": "failed", "error": str(err)}), 500
+    else:
+        flask.abort(404, description="Resource not found")
