@@ -5,11 +5,12 @@ import os
 
 
 def get_json_secret_from_gcp(secret_name: Optional[str] = None) -> dict:
-    """Retrives secret from Google Cloud Platform: Secret Manager, and deserialize it from json to python object.
+    """Retrives secret from Google Cloud Platform: Secret Manager,
+    and deserialize it from json to python object.
 
     Args:
         secret_name (str): A secret name in GCP Secret Manager.
-        
+
     Returns:
         A deserialized json secret from GCP Secret Manager
 
@@ -27,7 +28,8 @@ def get_json_secret_from_gcp(secret_name: Optional[str] = None) -> dict:
 
 
 def get_json_secret_from_env(*, env_var_name: str) -> dict:
-    """Retrives secret from Environment variable, and deserialize it from json to python object.
+    """Retrives secret from Environment variable,
+    and deserialize it from json to python object.
 
     Args:
         env_var_name (str): Environment variable containing secret value.
@@ -43,6 +45,7 @@ def get_json_secret_from_env(*, env_var_name: str) -> dict:
     payload = os.getenv(env_var_name)
     if payload is None:
         raise ValueError(
-            f'Failed to get secret from environment variable: environment variable "{env_var_name}" is not set.'
+            "Failed to get secret from environment variable: "
+            f'environment variable "{env_var_name}" is not set.'
         )
     return json.loads(payload)

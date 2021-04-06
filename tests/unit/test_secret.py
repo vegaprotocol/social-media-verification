@@ -1,4 +1,3 @@
-import pytest
 from unittest import mock
 import os
 
@@ -22,7 +21,7 @@ def test_get_secret_from_gcp(SecretManagerServiceClientMock):
     secret_service = mock.MagicMock()
     SecretManagerServiceClientMock.return_value = secret_service
 
-    # payload response from SecretManagerServiceClient.access_secret_version(name="SECRET NAME")
+    # SecretManagerServiceClient.access_secret_version(name="SECRET NAME")
     payload_response = mock.MagicMock()
     payload_response.payload.data = b'{"USER": "user1", "PORT": 9001}'
     secret_service.access_secret_version.return_value = payload_response
@@ -33,5 +32,5 @@ def test_get_secret_from_gcp(SecretManagerServiceClientMock):
         "PORT": 9001,
     }
 
-    # validate that `access_secret_version` was called once with a specific argument
+    # validate `access_secret_version` was called once with a specific argument
     secret_service.access_secret_version.assert_called_once_with(name="SECRET")
