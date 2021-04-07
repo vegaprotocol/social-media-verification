@@ -18,20 +18,30 @@ def test_OneLog_basic():
     assert onelog.to_single_line() == 'string_val="my string", int_val="123"'
 
     onelog.info(float_val=1.23)
-    assert onelog.to_single_line() == 'string_val="my string", int_val="123", float_val="1.23"'
+    assert (
+        onelog.to_single_line()
+        == 'string_val="my string", int_val="123", float_val="1.23"'
+    )
 
 
-@pytest.mark.parametrize("description, value, expected_log", [
-    ("date", datetime(2020, 10, 15, 10, 21, 33), 'val="2020-10-15T10:21:33"'),
-    ("json", {"key": "val"}, 'val="{\\"key\\":\\"val\\"}"'),
-    (   "json date",
-        {"date": datetime(2020, 10, 15, 10, 21, 33)},
-        'val="{\\"date\\":\\"2020-10-15T10:21:33\\"}"',
-    ),
-    ("new line", "this\nis\nnewline", 'val="this\\nis\\nnewline"'),
-    ("decimal", Decimal("1.32"), 'val="1.32"')
-
-])
+@pytest.mark.parametrize(
+    "description, value, expected_log",
+    [
+        (
+            "date",
+            datetime(2020, 10, 15, 10, 21, 33),
+            'val="2020-10-15T10:21:33"',
+        ),
+        ("json", {"key": "val"}, 'val="{\\"key\\":\\"val\\"}"'),
+        (
+            "json date",
+            {"date": datetime(2020, 10, 15, 10, 21, 33)},
+            'val="{\\"date\\":\\"2020-10-15T10:21:33\\"}"',
+        ),
+        ("new line", "this\nis\nnewline", 'val="this\\nis\\nnewline"'),
+        ("decimal", Decimal("1.32"), 'val="1.32"'),
+    ],
+)
 def test_OneLog_special_values(description, value, expected_log):
     onelog = OneLog(val=value)
 
@@ -51,16 +61,22 @@ def test_onelog_decorator(capsys):
     # validate log output
     captured = capsys.readouterr()
 
-    matched = re.match(r'^time="([^"]*)", action="inner_function", inner="value", time_ms="0", status="SUCCESS"$', captured.out)
+    matched = re.match(
+        (
+            r'^time="([^"]*)", action="inner_function", '
+            r'inner="value", time_ms="0", status="SUCCESS"$'
+        ),
+        captured.out,
+    )
     assert matched
     log_timestamp = datetime.fromisoformat(matched.group(1))
-    assert   time_before <= log_timestamp and log_timestamp <= time_after
+    assert time_before <= log_timestamp and log_timestamp <= time_after
 
 
 def test_onelog_decorator_exception(capsys):
     @onelog
     def exception_inner_function(onelog: OneLog = None):
-        raise TypeError('test error')
+        raise TypeError("test error")
 
     # execute
     with pytest.raises(TypeError):
@@ -69,4 +85,10 @@ def test_onelog_decorator_exception(capsys):
     # validate log output
     captured = capsys.readouterr()
 
-    assert re.match(r'^time="([^"]*)", action="exception_inner_function", time_ms="0", status="FAILED"$', captured.out)
+    assert re.match(
+        (
+            r'^time="([^"]*)", action="exception_inner_function"'
+            r', time_ms="0", status="FAILED"$'
+        ),
+        captured.out,
+    )

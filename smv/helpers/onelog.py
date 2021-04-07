@@ -16,7 +16,7 @@ class OneLog(object):
     def __init__(self, **kwargs) -> None:
         self.log_entries = OrderedDict()
         self.info(**kwargs)
-    
+
     def info(self, **kwargs):
         for key, value in kwargs.items():
             if not isinstance(value, str):
@@ -28,14 +28,16 @@ class OneLog(object):
                     value = json.dumps(
                         value,
                         default=json_serial,  # properly convert dates
-                        separators=(',', ':'),  # remove whitespaces and newlines
+                        separators=(",", ":"),  # remove whitespaces and \n
                         ensure_ascii=False,  # UTF8
                     )
-            value = value.replace('"','\\"').replace("\n", "\\n")
+            value = value.replace('"', '\\"').replace("\n", "\\n")
             self.log_entries[key] = value
-    
+
     def to_single_line(self):
-        return ', '.join(f'{key!s}="{val!s}"' for (key,val) in self.log_entries.items())
+        return ", ".join(
+            f'{key!s}="{val!s}"' for (key, val) in self.log_entries.items()
+        )
 
 
 def onelog(f: Callable) -> Callable:
@@ -59,4 +61,5 @@ def onelog(f: Callable) -> Callable:
             else:
                 onelog.log_entries.move_to_end("status")
             print(onelog.to_single_line())
+
     return wrapper
