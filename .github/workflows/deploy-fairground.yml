@@ -43,5 +43,5 @@ jobs:
           description: Social Media Verification
           service_account_email: ${{ secrets.SMV_GCP_SA_EMAIL }}
 
-      - id: Test deployed service
+      - name: Test deployed service
         run: curl "${{ steps.deploy.outputs.url }}/parties"
