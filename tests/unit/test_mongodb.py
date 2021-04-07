@@ -26,7 +26,8 @@ STR_MONGO_DATA = """
 )
 @mock.patch("pymongo.MongoClient")
 @mock.patch(
-    "smv.helpers.mongodb.get_json_secret_from_gcp", return_value=MONGODB_DATA,
+    "smv.helpers.mongodb.get_json_secret_from_gcp",
+    return_value=MONGODB_DATA,
 )
 def test_get_mongodb_connection_env_var_with_gcp_secret_name(
     get_json_secret_from_gcp_mock: mock.MagicMock,
@@ -53,7 +54,8 @@ def test_get_mongodb_connection_env_var_with_gcp_secret_name(
 
 @mock.patch("pymongo.MongoClient")
 @mock.patch(
-    "smv.helpers.mongodb.get_json_secret_from_gcp", return_value=MONGODB_DATA,
+    "smv.helpers.mongodb.get_json_secret_from_gcp",
+    return_value=MONGODB_DATA,
 )
 def test_get_mongodb_connection_no_env(
     get_json_secret_from_gcp_mock: mock.MagicMock,
