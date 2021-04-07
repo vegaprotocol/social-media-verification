@@ -1,5 +1,5 @@
 import flask
-from smv.app import handle_parties, handle_process_tweets
+from app import handle_parties, handle_process_tweets
 
 
 def router(request: flask.Request):
