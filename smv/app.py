@@ -11,7 +11,7 @@ import traceback
 from timeit import default_timer as timer
 
 from twython import Twython
-from helper import get_json_secret, get_mongodb_url_from_secret
+from .helpers import get_json_secret, get_mongodb_url_from_secret
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
@@ -255,23 +255,22 @@ def process_tweets(twapi: Twython, tweets: list):
         print(log_line)
 
 
-def handle_request(request: flask.Request):
-    if request.path.endswith("/parties"):
-        return flask.jsonify(get_parties())
-    elif request.path.endswith("/process-tweets"):
-        try:
-            twapi = Twython(
-                TWITTER_CONSUMER_KEY,
-                TWITTER_CONSUMER_SECRET,
-                TWITTER_ACCESS_TOKEN,
-                TWITTER_ACCESS_SECRET,
-            )
-            tweets = search_tweets(twapi)
-            process_tweets(twapi, tweets)
-            return flask.jsonify({"status": "success"})
-        except Exception as err:
-            traceback.print_exc()
-            print(err)
-            return flask.jsonify({"status": "failed", "error": str(err)}), 500
-    else:
-        flask.abort(404, description="Resource not found")
+def handle_parties():
+    return flask.jsonify(get_parties())
+
+
+def handle_process_tweets():
+    try:
+        twapi = Twython(
+            TWITTER_CONSUMER_KEY,
+            TWITTER_CONSUMER_SECRET,
+            TWITTER_ACCESS_TOKEN,
+            TWITTER_ACCESS_SECRET,
+        )
+        tweets = search_tweets(twapi)
+        process_tweets(twapi, tweets)
+        return flask.jsonify({"status": "success"})
+    except Exception as err:
+        traceback.print_exc()
+        print(err)
+        return flask.jsonify({"status": "failed", "error": str(err)}), 500
