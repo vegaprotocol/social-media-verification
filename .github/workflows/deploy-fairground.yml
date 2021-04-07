@@ -1,11 +1,11 @@
 ---
 
-name: Deploy to devnet
+name: Deploy to Fairground
 
 "on":
   push:
     branches:
-      - develop
+      - main
     paths:
       - 'src/**'
   # Allows you to run this workflow manually from the Actions tab
@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
 
     env:
-      MONGO_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_DEVNET_GCP_MONGO_SECRET_NAME }}/versions/latest
-      TWITTER_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_DEVNET_GCP_TWITTER_SECRET_NAME }}/versions/latest
-      TWITTER_SEARCH_TEXT: Verifying myself on Knightsbridge
-      TWITTER_REPLY_SUCCESS: Thanks for joining Knightsbridge!
+      MONGO_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_FAIRGROUND_GCP_MONGO_SECRET_NAME }}/versions/latest
+      TWITTER_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_FAIRGROUND_GCP_TWITTER_SECRET_NAME }}/versions/latest
+      TWITTER_SEARCH_TEXT: Verifying myself on Old Street
+      TWITTER_REPLY_SUCCESS: Thanks for joining Old Street!
       TWITTER_REPLY_INVALID_FORMAT: The format of your Tweet is invalid. Please join Discord and ask a team member to help.
       TWITTER_REPLY_INVALID_SIGNATURE: The signature in your Tweet is invalid. Please join Discord and ask a team member to help.
 
@@ -28,19 +28,19 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Publish to devnet
+      - name: Publish to Fairground
         uses: google-github-actions/deploy-cloud-functions@main
         id: deploy
         with:
-          name: smv-devnet
+          name: smv
           runtime: python39
           entry_point: router
           memory_mb: 128MB
-          region: ${{ secrets.SMV_DEVNET_GCP_REGION }}
+          region: ${{ secrets.SMV_FAIRGROUND_GCP_REGION }}
           credentials: ${{ secrets.SMV_GCP_SA_KEY }}
           env_vars: MONGO_SECRET_NAME=${{ env.MONGO_SECRET_NAME }},TWITTER_SECRET_NAME=${{ env.TWITTER_SECRET_NAME }},TWITTER_SEARCH_TEXT=${{ env.TWITTER_SEARCH_TEXT }},TWITTER_REPLY_SUCCESS=${{ env.TWITTER_REPLY_SUCCESS }},TWITTER_REPLY_INVALID_FORMAT=${{ env.TWITTER_REPLY_INVALID_FORMAT }},TWITTER_REPLY_INVALID_SIGNATURE=${{ env.TWITTER_REPLY_INVALID_SIGNATURE }}
           source_dir: src
-          description: Social Media Verification on Devnet
+          description: Social Media Verification
           service_account_email: ${{ secrets.SMV_GCP_SA_EMAIL }}
 
       - id: Test deployed service
