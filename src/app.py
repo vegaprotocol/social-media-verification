@@ -11,7 +11,7 @@ import traceback
 from timeit import default_timer as timer
 
 from twython import Twython
-from .helpers import get_json_secret, get_mongodb_url_from_secret
+from helpers import get_json_secret, get_mongodb_url_from_secret
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")

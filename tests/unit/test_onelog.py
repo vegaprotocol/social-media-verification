@@ -3,7 +3,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import re
 
-from smv.helpers.onelog import onelog, OneLog
+from helpers.onelog import onelog, OneLog
 
 
 def test_OneLog_basic():

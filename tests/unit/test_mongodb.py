@@ -2,7 +2,7 @@ import pytest
 from unittest import mock
 import os
 
-from smv.helpers.mongodb import get_mongodb_connection
+from helpers.mongodb import get_mongodb_connection
 
 MONGODB_DATA = {
     "DB_USER": "user1",
@@ -26,7 +26,7 @@ STR_MONGO_DATA = """
 )
 @mock.patch("pymongo.MongoClient")
 @mock.patch(
-    "smv.helpers.mongodb.get_json_secret_from_gcp",
+    "helpers.mongodb.get_json_secret_from_gcp",
     return_value=MONGODB_DATA,
 )
 def test_get_mongodb_connection_env_var_with_gcp_secret_name(
@@ -54,7 +54,7 @@ def test_get_mongodb_connection_env_var_with_gcp_secret_name(
 
 @mock.patch("pymongo.MongoClient")
 @mock.patch(
-    "smv.helpers.mongodb.get_json_secret_from_gcp",
+    "helpers.mongodb.get_json_secret_from_gcp",
     return_value=MONGODB_DATA,
 )
 def test_get_mongodb_connection_no_env(
