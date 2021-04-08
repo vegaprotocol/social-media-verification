@@ -1,6 +1,6 @@
 ---
 
-name: Deploy to devnet
+name: Deploy to Devnet
 
 "on":
   push:
@@ -15,7 +15,7 @@ name: Deploy to devnet
 jobs:
 
   deploy-devnet:
-    name: Deploy to devnet
+    name: Deploy to Devnet
     runs-on: ubuntu-latest
 
     env:
@@ -30,7 +30,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Publish to devnet
+      - name: Publish to Devnet
         uses: google-github-actions/deploy-cloud-functions@main
         id: deploy
         with:

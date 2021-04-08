@@ -1,11 +1,11 @@
 [![Python tests](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python.yml)
-[![Deploy to devnet](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy-devnet.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy-devnet.yml)
+[![Deploy to Devnet](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy-devnet.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy-devnet.yml)
 [![Deploy to Stagnet and Testnet](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy.yml)
 # Social Media Verification
 
 This is a simple Python script that searches Twitter for tweets that contain an expected string. Once it finds a matching tweet, it attempts to extract a public key and signature from the end of the Tweet, verify the signature, and if it's valid, store the Twitter identity in MongoDB alongside the public key.
 
-## Deploying to devnet and Stagnet/Testnet
+## Deploying to Devnet and Stagnet/Testnet
 
 The process is fully automated:
 * once you merge your change onto `develop` branch it will automatically deploy to Devnet. (see [GitHub Workflow](.github/workflows/deploy-devnet.yml) for details)
