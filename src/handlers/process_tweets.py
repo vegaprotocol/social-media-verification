@@ -1,7 +1,7 @@
 import ed25519
 import hashlib
 import base64
-import pymongo
+from pymongo import database
 import sys
 import warnings
 import os
@@ -11,20 +11,10 @@ import traceback
 from timeit import default_timer as timer
 
 from twython import Twython
-from helpers import get_json_secret, get_mongodb_url_from_secret
+from helpers import get_json_secret
 
 if not sys.warnoptions:
     warnings.simplefilter("ignore")
-
-#
-# Setup MongoDB connection
-#
-mongo_secret_name = os.environ["MONGO_SECRET_NAME"]
-mongo_secret = get_json_secret(mongo_secret_name)
-db_name = mongo_secret["DB_NAME"]
-DB_URL = get_mongodb_url_from_secret(mongo_secret)
-
-DB_CONN = pymongo.MongoClient(DB_URL).get_database(db_name)
 
 #
 # Setup Twitter Access Token
@@ -59,8 +49,8 @@ def is_sig_valid(sig, msg, pub_key):
     return False
 
 
-def store_verified_party(screen_name, pub_key):
-    collection = DB_CONN.get_collection("identities")
+def store_verified_party(db: database.Database, screen_name, pub_key):
+    collection = db.get_collection("identities")
     query = {"pub_key": pub_key}
     doc = collection.find(query)
     if doc.count() == 0:
@@ -71,8 +61,8 @@ def store_verified_party(screen_name, pub_key):
         collection.update_one(query, {"$set": {"twitter_handle": screen_name}})
 
 
-def store_tweet_record(tweet_id, screen_name, status):
-    collection = DB_CONN.get_collection("tweets")
+def store_tweet_record(db: database.Database, tweet_id, screen_name, status):
+    collection = db.get_collection("tweets")
     query = {"tweet_id": tweet_id}
     doc = collection.find(query)
     if doc.count() == 0:
@@ -85,8 +75,8 @@ def store_tweet_record(tweet_id, screen_name, status):
         )
 
 
-def is_tweet_processed(tweet_id):
-    collection = DB_CONN.get_collection("tweets")
+def is_tweet_processed(db: database.Database, tweet_id):
+    collection = db.get_collection("tweets")
     query = {"tweet_id": tweet_id}
     doc = collection.find(query)
     if doc.count() == 0:
@@ -94,39 +84,13 @@ def is_tweet_processed(tweet_id):
     return True
 
 
-def get_parties():
-    start_time = timer()
-    log_line = "Get Parties"
-    try:
-        collection = DB_CONN.get_collection("identities")
-        doc = collection.find()
-        parties = []
-        for item in doc:
-            parties.append(
-                {
-                    "party_id": item["pub_key"],
-                    "twitter_handle": item["twitter_handle"],
-                }
-            )
-        log_line += f', parties_count={len(parties)}, status="SUCCESS"'
-        return parties
-    except Exception as err:
-        log_line += f', error="{err}", status="ERROR"'
-        raise
-    finally:
-        end_time = timer()
-        elapsed_time_ms = int((end_time - start_time) * 1000)
-        log_line += f', time_ms="{elapsed_time_ms}"'
-        print(log_line)
-
-
-def process_tweet(tweet, twapi):
+def process_tweet(tweet, twapi: Twython, db: database.Database):
     start_time = timer()
     log_line = f"Processing tweet={tweet}"
     replied_to_user = False
     try:
         tweet_id = tweet["id"]
-        tweet_processed = is_tweet_processed(tweet_id)
+        tweet_processed = is_tweet_processed(db, tweet_id)
         log_line += (
             f', tweet_id="{tweet_id}", tweet_processed="{tweet_processed}"'
         )
@@ -151,8 +115,8 @@ def process_tweet(tweet, twapi):
                 f', sig_valid="{sig_valid}"'
             )
             if sig_valid:
-                store_verified_party(screen_name, pub_key)
-                store_tweet_record(tweet_id, screen_name, "PASSED")
+                store_verified_party(db, screen_name, pub_key)
+                store_tweet_record(db, tweet_id, screen_name, "PASSED")
                 msg = f"@{screen_name} {TWITTER_REPLY_SUCCESS}"
                 log_line += f', reply_msg="{msg}"'
                 try:
@@ -179,7 +143,7 @@ def process_tweet(tweet, twapi):
                 except Exception:
                     traceback.print_exc()
             else:
-                store_tweet_record(tweet_id, screen_name, "INVALID")
+                store_tweet_record(db, tweet_id, screen_name, "INVALID")
                 msg = f"@{screen_name} {TWITTER_REPLY_INVALID_SIGNATURE}"
                 log_line += f', reply_msg="{msg}"'
                 try:
@@ -200,7 +164,7 @@ def process_tweet(tweet, twapi):
         log_line += f', error="{err}", reply_msg="{msg}"'
         twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
         replied_to_user = True
-        store_tweet_record(tweet_id, screen_name, "UNPARSEABLE")
+        store_tweet_record(db, tweet_id, screen_name, "UNPARSEABLE")
         log_line += ', status="ERROR"'
     finally:
         end_time = timer()
@@ -233,13 +197,13 @@ def search_tweets(twapi: Twython) -> list:
         print(log_line)
 
 
-def process_tweets(twapi: Twython, tweets: list):
+def process_tweets(twapi: Twython, db: database.Database, tweets: list):
     start_time = timer()
     log_line = f'Processing tweets count="{len(tweets)}"'
     try:
         response_count = 0
         for tweet in tweets:
-            replied_to_user = process_tweet(tweet, twapi)
+            replied_to_user = process_tweet(tweet, twapi, db)
             if replied_to_user:
                 response_count += 1
                 # sleep for 1 second after replying to user
@@ -255,11 +219,7 @@ def process_tweets(twapi: Twython, tweets: list):
         print(log_line)
 
 
-def handle_parties():
-    return flask.jsonify(get_parties())
-
-
-def handle_process_tweets():
+def handle_process_tweets(db: database.Database):
     try:
         twapi = Twython(
             TWITTER_CONSUMER_KEY,
@@ -268,7 +228,7 @@ def handle_process_tweets():
             TWITTER_ACCESS_SECRET,
         )
         tweets = search_tweets(twapi)
-        process_tweets(twapi, tweets)
+        process_tweets(twapi, db, tweets)
         return flask.jsonify({"status": "success"})
     except Exception as err:
         traceback.print_exc()
