@@ -15,6 +15,7 @@ name: Deploy to devnet
 jobs:
 
   deploy-devnet:
+    name: Deploy to devnet
     runs-on: ubuntu-latest
 
     env:
