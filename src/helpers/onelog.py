@@ -19,28 +19,41 @@ class OneLog(object):
 
     def info(self, **kwargs):
         for key, value in kwargs.items():
-            if not isinstance(value, str):
-                if isinstance(value, (datetime, date)):
-                    value = value.isoformat()
-                elif isinstance(value, (Decimal, int)):
-                    value = str(value)
-                else:
-                    value = json.dumps(
-                        value,
-                        default=json_serial,  # properly convert dates
-                        separators=(",", ":"),  # remove whitespaces and \n
-                        ensure_ascii=False,  # UTF8
-                    )
-            value = value.replace('"', '\\"').replace("\n", "\\n")
             self.log_entries[key] = value
 
-    def to_single_line(self):
-        return ", ".join(
-            f'{key!s}="{val!s}"' for (key, val) in self.log_entries.items()
+    def to_single_line_json(self) -> str:
+        return json.dumps(
+            self.log_entries,
+            default=json_serial,  # properly convert dates
+            separators=(",", ":"),  # remove whitespaces and \n
+            ensure_ascii=False,  # UTF8
         )
 
+    def to_single_line_key_value(self) -> str:
+        kv = []
+        for key, value in self.log_entries.items():
+            if isinstance(value, (datetime, date)):
+                value = value.isoformat()
+            elif isinstance(value, (Decimal, int, float)):
+                value = str(value)
+            elif not isinstance(value, str):
+                value = json.dumps(
+                    value,
+                    default=json_serial,  # properly convert dates
+                    separators=(",", ":"),  # remove whitespaces and \n
+                    ensure_ascii=False,  # UTF8
+                )
+            value = value.replace('"', '\\"').replace("\n", "\\n")
+            kv.append(f'{key!s}="{value!s}"')
 
-def onelog(f: Callable) -> Callable:
+        return ", ".join(kv)
+
+
+def _onelog(
+    f: Callable,
+    onelog_to_single_line: Callable[[OneLog], None],
+    log: Callable[[str], None],
+) -> Callable:
     def wrapper(*args, **kwargs):
         onelog = OneLog(
             time=datetime.utcnow().replace(tzinfo=timezone.utc).isoformat(),
@@ -49,7 +62,8 @@ def onelog(f: Callable) -> Callable:
         start_time = timer()
         try:
             return f(*args, **kwargs, onelog=onelog)
-        except Exception:
+        except Exception as err:
+            onelog.info(err=str(err))
             if "status" not in onelog.log_entries:
                 onelog.info(status="FAILED")
             raise  # rethrow exception
@@ -60,6 +74,53 @@ def onelog(f: Callable) -> Callable:
                 onelog.info(status="SUCCESS")
             else:
                 onelog.log_entries.move_to_end("status")
-            print(onelog.to_single_line())
+            log(onelog_to_single_line(onelog))
 
     return wrapper
+
+
+def onelog(f: Callable):
+    """`@onelog` decorator produces one log in single line for a decorated function
+
+    Usage:
+    ```
+    @onelog
+    def my_handler(request, onelog: OneLog):
+        ...
+        onelog.info(client_id=request.client_id)
+        ...
+        onelog.info(item_count=len(items), max_price=max(item_prices))
+        ...
+    ```
+    will produce log:
+    ```
+    time="2021-04-08T20:59:12.143317+00:00", action="my_handler",
+    client_id="1", item_count="12", max_price="34.99", time_ms="291",
+    status="SUCCESS"
+    ```
+    """
+    return _onelog(f, OneLog.to_single_line_key_value, print)
+
+
+def onelog_json(f: Callable):
+    """`@onelog_json` decorator produces one log in single line for
+    a decorated function.
+
+    Note: Format of produced log is json (i.e. one json in a single line)
+
+    Usage:
+    ```
+    @onelog_json
+    def my_handler(request, onelog: OneLog):
+        ...
+        onelog.info(client_id=request.client_id)
+        ...
+        onelog.info(item_count=len(items), max_price=max(item_prices))
+        ...
+    ```
+    will produce log:
+    ```
+    {"time":"2021-04-08T20:59:12.143317+00:00","action":"my_handler","client_id":1,"item_count":12,"max_price":"34.99","time_ms":"291","status":"SUCCESS"
+    ```
+    """
+    return _onelog(f, OneLog.to_single_line_json, print)

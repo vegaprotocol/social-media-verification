@@ -1,11 +1,12 @@
 import os
 import json
 import pymongo
+from pymongo import database
 
 from .secret import get_json_secret_from_gcp
 
 
-def get_mongodb_connection(*, gcp_secret_name: str):
+def get_mongodb_connection(*, gcp_secret_name: str) -> database.Database:
     """Connects to MongoDB based on credentials read from
     GCP Secret Manager or Environment variable
 
