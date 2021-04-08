@@ -4,7 +4,9 @@ from helpers.onelog import onelog_json, OneLog
 
 
 @onelog_json
-def handle_parties(db: database.Database, onelog: OneLog = None):
+def handle_parties(
+    db: database.Database, onelog: OneLog = None
+) -> flask.Response:
     parties = []
     collection = db.get_collection("identities")
     for item in collection.find():

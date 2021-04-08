@@ -1,7 +1,8 @@
 import flask
 import os
 from helpers.mongodb import get_mongodb_connection
-from handlers import handle_parties, handle_process_tweets
+from handlers import handle_parties
+from handlers.process_tweets import handle_process_tweets
 
 DB = get_mongodb_connection(
     gcp_secret_name=os.environ["MONGO_SECRET_NAME"],
