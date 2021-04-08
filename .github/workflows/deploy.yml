@@ -1,6 +1,6 @@
 ---
 
-name: Deploy to Fairground
+name: Deploy to Stagnet and Testnet
 
 "on":
   push:
@@ -8,17 +8,18 @@ name: Deploy to Fairground
       - main
     paths:
       - 'src/**'
+      - '.github/workflows/deploy.yml'
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch: null
 
 jobs:
 
-  build:
+  deploy:
     runs-on: ubuntu-latest
 
     env:
-      MONGO_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_FAIRGROUND_GCP_MONGO_SECRET_NAME }}/versions/latest
-      TWITTER_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_FAIRGROUND_GCP_TWITTER_SECRET_NAME }}/versions/latest
+      MONGO_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_GCP_MONGO_SECRET_NAME }}/versions/latest
+      TWITTER_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_GCP_TWITTER_SECRET_NAME }}/versions/latest
       TWITTER_SEARCH_TEXT: Verifying myself on Old Street
       TWITTER_REPLY_SUCCESS: Thanks for joining Old Street!
       TWITTER_REPLY_INVALID_FORMAT: The format of your Tweet is invalid. Please join Discord and ask a team member to help.
@@ -28,7 +29,7 @@ jobs:
       - name: Check out code
         uses: actions/checkout@v2
 
-      - name: Publish to Fairground
+      - name: Publish to Stagnet and Testnet
         uses: google-github-actions/deploy-cloud-functions@main
         id: deploy
         with:
@@ -36,7 +37,7 @@ jobs:
           runtime: python39
           entry_point: router
           memory_mb: 128MB
-          region: ${{ secrets.SMV_FAIRGROUND_GCP_REGION }}
+          region: ${{ secrets.SMV_GCP_REGION }}
           credentials: ${{ secrets.SMV_GCP_SA_KEY }}
           env_vars: MONGO_SECRET_NAME=${{ env.MONGO_SECRET_NAME }},TWITTER_SECRET_NAME=${{ env.TWITTER_SECRET_NAME }},TWITTER_SEARCH_TEXT=${{ env.TWITTER_SEARCH_TEXT }},TWITTER_REPLY_SUCCESS=${{ env.TWITTER_REPLY_SUCCESS }},TWITTER_REPLY_INVALID_FORMAT=${{ env.TWITTER_REPLY_INVALID_FORMAT }},TWITTER_REPLY_INVALID_SIGNATURE=${{ env.TWITTER_REPLY_INVALID_SIGNATURE }}
           source_dir: src

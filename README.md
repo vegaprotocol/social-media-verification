@@ -2,11 +2,11 @@
 
 This is a simple Python script that searches Twitter for tweets that contain an expected string. Once it finds a matching tweet, it attempts to extract a public key and signature from the end of the Tweet, verify the signature, and if it's valid, store the Twitter identity in MongoDB alongside the public key.
 
-## Deploying to devnet and Fairground
+## Deploying to devnet and Stagnet/Testnet
 
 The process is fully automated:
 * once you merge your change onto `develop` branch it will automatically deploy to Devnet. (see [GitHub Workflow](.github/workflows/deploy-devnet.yml) for details)
-* once you merge `develop` into `main` branch it will automatically deploy to Stagnet and Fairground. (see [GitHub Workflow](.github/workflows/deploy-fairground.yml) for details)
+* once you merge `develop` into `main` branch it will automatically deploy to Stagnet and Testnet. (see [GitHub Workflow](.github/workflows/deploy.yml) for details)
 
 Important: Please note that all files from [src](src) directory are deployed, so be careful what you add/remove there.
 
