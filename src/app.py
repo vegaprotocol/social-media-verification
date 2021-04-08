@@ -94,32 +94,6 @@ def is_tweet_processed(tweet_id):
     return True
 
 
-def get_parties():
-    start_time = timer()
-    log_line = "Get Parties"
-    try:
-        collection = DB_CONN.get_collection("identities")
-        doc = collection.find()
-        parties = []
-        for item in doc:
-            parties.append(
-                {
-                    "party_id": item["pub_key"],
-                    "twitter_handle": item["twitter_handle"],
-                }
-            )
-        log_line += f', parties_count={len(parties)}, status="SUCCESS"'
-        return parties
-    except Exception as err:
-        log_line += f', error="{err}", status="ERROR"'
-        raise
-    finally:
-        end_time = timer()
-        elapsed_time_ms = int((end_time - start_time) * 1000)
-        log_line += f', time_ms="{elapsed_time_ms}"'
-        print(log_line)
-
-
 def process_tweet(tweet, twapi):
     start_time = timer()
     log_line = f"Processing tweet={tweet}"
@@ -253,10 +227,6 @@ def process_tweets(twapi: Twython, tweets: list):
         elapsed_time_ms = int((end_time - start_time) * 1000)
         log_line += f', time_ms="{elapsed_time_ms}"'
         print(log_line)
-
-
-def handle_parties():
-    return flask.jsonify(get_parties())
 
 
 def handle_process_tweets():
