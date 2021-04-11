@@ -4,7 +4,7 @@ from datetime import datetime, timezone
 from decimal import Decimal
 import re
 
-from helpers.onelog import onelog, OneLog, onelog_json
+from services.onelog import onelog, OneLog, onelog_json
 
 
 def test_OneLog_basic():

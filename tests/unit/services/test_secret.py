@@ -1,7 +1,7 @@
 from unittest import mock
 import os
 
-from helpers.secret import (
+from services.secret import (
     get_json_secret_from_env,
     get_json_secret_from_gcp,
 )

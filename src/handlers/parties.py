@@ -1,6 +1,6 @@
 import flask
 from pymongo import database
-from helpers.onelog import onelog_json, OneLog
+from services.onelog import onelog_json, OneLog
 
 
 @onelog_json
