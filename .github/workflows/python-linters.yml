@@ -1,6 +1,6 @@
 ---
 
-name: Python tests
+name: Python linters
 
 "on":
   push:
