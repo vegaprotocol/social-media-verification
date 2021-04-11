@@ -1,6 +1,9 @@
-[![Python tests](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python.yml)
+[![Python linters](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python-linters.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python-linters.yml)
+[![Python tests](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python-unit-tests.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python-unit-tests.yml)
 [![Deploy to Devnet](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy-devnet.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy-devnet.yml)
-[![Deploy to Stagnet and Testnet](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy.yml/badge.svg?branch=main)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy.yml)
+[![Deploy to Stagnet and Testnet](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy.yml)
+[![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+
 # Social Media Verification
 
 This is a simple Python script that searches Twitter for tweets that contain an expected string. Once it finds a matching tweet, it attempts to extract a public key and signature from the end of the Tweet, verify the signature, and if it's valid, store the Twitter identity in MongoDB alongside the public key.
