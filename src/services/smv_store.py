@@ -1,4 +1,3 @@
-import pymongo
 from pymongo import database
 from pymongo.collection import Collection
 from .mongodb import get_mongodb_connection
