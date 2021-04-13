@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 import os
 
-from services.smv_store import SMVStore
+from services.smv_storage import SMVStorage
 
 MONGO_DB_USER = "[DATABASE USERNAME]"
 MONGO_DB_PASS = "[DATABASE USERNAME PASSWORD]"
@@ -18,6 +18,10 @@ os.environ[
     "DB_NAME": "{MONGO_DB_NAME}"
 }}"""
 
-store = SMVStore.get_store(gcp_secret_name="MONGO_SECRET")
+storage = SMVStorage.get_storage(gcp_secret_name="MONGO_SECRET")
 
-print(f"parties={store.get_parties()}")
+print(f"parties={storage.get_parties()}")
+
+# storage.upsert_tweet_record(1233, text="gg", screen_name="abc_userrrrrr")
+
+print(f"tweet_record={storage.get_tweet_record(1233)}")

@@ -1,7 +1,7 @@
 import flask
 import os
 from common import SMVConfig
-from services.smv_store import SMVStore
+from services.smv_storage import SMVStorage
 from handlers import handle_parties
 from handlers.process_tweets import handle_process_tweets
 from services.twitter import TwitterClient
@@ -18,7 +18,7 @@ CONFIG = SMVConfig(
     twitter_reply_delay=float(os.getenv("TWITTER_REPLY_DELAY", "0.25")),
 )
 
-STORE = SMVStore.get_store(
+STORAGE = SMVStorage.get_storage(
     gcp_secret_name=os.environ["MONGO_SECRET_NAME"],
 )
 
@@ -29,10 +29,10 @@ TWCLIENT = TwitterClient(
 
 def router(request: flask.Request):
     if request.path.endswith("/parties"):
-        return handle_parties(store=STORE)
+        return handle_parties(storage=STORAGE)
     elif request.path.endswith("/process-tweets"):
         return handle_process_tweets(
-            store=STORE,
+            storage=STORAGE,
             twclient=TWCLIENT,
             config=CONFIG,
         )
