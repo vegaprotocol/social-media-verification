@@ -17,11 +17,11 @@ class SMVStore(object):
 
     @property
     def col_identities(self) -> Collection:
-        self.db.get_collection("identities")
+        return self.db.get_collection("identities")
 
     @property
     def col_tweets(self) -> Collection:
-        self.db.get_collection("tweets")
+        return self.db.get_collection("tweets")
 
     def get_parties(self):
         return [
