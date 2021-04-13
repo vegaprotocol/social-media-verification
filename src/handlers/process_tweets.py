@@ -1,38 +1,13 @@
 import ed25519
 import hashlib
 import base64
-from pymongo import database
-import sys
-import warnings
-import os
-import time
 import flask
+from pymongo import database
 import traceback
-from timeit import default_timer as timer
-
-from twython import Twython
-from services import get_json_secret
-
-if not sys.warnoptions:
-    warnings.simplefilter("ignore")
-
-#
-# Setup Twitter Access Token
-#
-twitter_secret_name = os.environ["TWITTER_SECRET_NAME"]
-twitter_secret = get_json_secret(twitter_secret_name)
-# Load from secret
-TWITTER_CONSUMER_KEY = twitter_secret["CONSUMER_KEY"]
-TWITTER_CONSUMER_SECRET = twitter_secret["CONSUMER_SECRET"]
-TWITTER_ACCESS_TOKEN = twitter_secret["ACCESS_TOKEN"]
-TWITTER_ACCESS_SECRET = twitter_secret["ACCESS_SECRET"]
-# Load from env variables
-TWITTER_SEARCH_TEXT = os.environ["TWITTER_SEARCH_TEXT"]
-TWITTER_SEARCH_COUNT = int(os.getenv("TWITTER_SEARCH_COUNT", "50"))
-TWITTER_REPLY_SUCCESS = os.environ["TWITTER_REPLY_SUCCESS"]
-TWITTER_REPLY_INVALID_FORMAT = os.environ["TWITTER_REPLY_INVALID_FORMAT"]
-TWITTER_REPLY_INVALID_SIGNATURE = os.environ["TWITTER_REPLY_INVALID_SIGNATURE"]
-TWITTER_REPLY_DELAY = float(os.getenv("TWITTER_REPLY_DELAY", "1.0"))
+from services.twitter import TwitterClient, Tweet
+from services.smv_store import SMVStore
+from common import SMVConfig
+from services.onelog import onelog_json, OneLog
 
 
 def is_sig_valid(sig, msg, pub_key):
@@ -84,153 +59,74 @@ def is_tweet_processed(db: database.Database, tweet_id):
     return True
 
 
-def process_tweet(tweet, twapi: Twython, db: database.Database):
-    start_time = timer()
-    log_line = f"Processing tweet={tweet}"
-    replied_to_user = False
+@onelog_json
+def process_tweet(
+    tweet: Tweet,
+    store: SMVStore,
+    twclient: TwitterClient,
+    config: SMVConfig,
+    onelog: OneLog = None,
+):
+    onelog.info(
+        tweet_id=tweet.tweet_id,
+        tweet_user=tweet.user_id,
+        tweet_message=tweet.full_text,
+    )
+
+    tweet_processed = is_tweet_processed(store.db, tweet.tweet_id)
+    onelog.info(tweet_processed=tweet_processed)
+
+    if tweet_processed:
+        onelog.info(status="SKIP")
+    else:
+        onelog.info(status="PROCESSING")
+
+
+@onelog_json
+def handle_process_tweets(
+    store: SMVStore,
+    twclient: TwitterClient,
+    config: SMVConfig,
+    onelog: OneLog = None,
+):
+    # Fetch all tweets from Twitter API
     try:
-        tweet_id = tweet["id"]
-        tweet_processed = is_tweet_processed(db, tweet_id)
-        log_line += (
-            f', tweet_id="{tweet_id}", tweet_processed="{tweet_processed}"'
+        # TODO: use since_tweet_id (get it from mongo db)
+        tweets = list(
+            twclient.search(
+                config.twitter_search_text,
+            )
         )
-        if not tweet_processed:
-            screen_name = tweet["user"]["screen_name"]
-            user_id = tweet["user"]["id"]
-            full_text = tweet["full_text"]
-            log_line += (
-                f', screen_name="{screen_name}", full_text="{full_text}"'
-            )
-            tweet_parts = list(
-                filter(
-                    lambda x: len(x) > 0,
-                    full_text.replace("\n", " ").split(" "),
-                )
-            )
-            sig = tweet_parts[-1]
-            pub_key = tweet_parts[-2]
-            sig_valid = is_sig_valid(sig, screen_name, pub_key)
-            log_line += (
-                f', sig="{sig}", pub_key="{pub_key}"'
-                f', sig_valid="{sig_valid}"'
-            )
-            if sig_valid:
-                store_verified_party(db, screen_name, pub_key)
-                store_tweet_record(db, tweet_id, screen_name, "PASSED")
-                msg = f"@{screen_name} {TWITTER_REPLY_SUCCESS}"
-                log_line += f', reply_msg="{msg}"'
-                try:
-                    twapi.update_status(
-                        status=msg, in_reply_to_status_id=tweet_id
-                    )
-                    twapi.send_direct_message(
-                        event={
-                            "type": "message_create",
-                            "message_create": {
-                                "target": {"recipient_id": user_id},
-                                "message_data": {
-                                    "text": (
-                                        "Please reply to this message "
-                                        "with the Ethereum address that you "
-                                        "would like to use to receive prizes."
-                                    )
-                                },
-                            },
-                        }
-                    )
-                    replied_to_user = True
-                    log_line += ', status="SUCCESS"'
-                except Exception:
-                    traceback.print_exc()
-            else:
-                store_tweet_record(db, tweet_id, screen_name, "INVALID")
-                msg = f"@{screen_name} {TWITTER_REPLY_INVALID_SIGNATURE}"
-                log_line += f', reply_msg="{msg}"'
-                try:
-                    twapi.update_status(
-                        status=msg, in_reply_to_status_id=tweet_id
-                    )
-                    replied_to_user = True
-                    log_line += ', status="INVALID"'
-                except Exception:
-                    traceback.print_exc()
-        else:
-            log_line += ', status="SKIP"'
-            replied_to_user = False
+        onelog.info(total_count=len(tweets))
     except Exception as err:
+        onelog.info(error=str(err), status="FAILED")
         traceback.print_exc()
         print(err)
-        msg = f"@{screen_name} {TWITTER_REPLY_INVALID_FORMAT}"
-        log_line += f', error="{err}", reply_msg="{msg}"'
-        twapi.update_status(status=msg, in_reply_to_status_id=tweet_id)
-        replied_to_user = True
-        store_tweet_record(db, tweet_id, screen_name, "UNPARSEABLE")
-        log_line += ', status="ERROR"'
-    finally:
-        end_time = timer()
-        elapsed_time_ms = int((end_time - start_time) * 1000)
-        log_line += f', time_ms="{elapsed_time_ms}"'
-        print(log_line)
-
-    return replied_to_user
-
-
-def search_tweets(twapi: Twython) -> list:
-    start_time = timer()
-    log_line = "Searching tweets"
-    try:
-        results = twapi.search(
-            q=TWITTER_SEARCH_TEXT,
-            count=TWITTER_SEARCH_COUNT,
-            tweet_mode="extended",
+        return (
+            flask.jsonify(
+                {"status": "failed", "error": "Failed to fetch tweets."}
+            ),
+            500,
         )
-        tweets = list(reversed(results["statuses"]))
-        log_line += f', tweets_count="{len(tweets)}", status="SUCCESS"'
-        return tweets
-    except Exception as err:
-        log_line += f', error="{err}", status="ERROR"'
-        raise
-    finally:
-        end_time = timer()
-        elapsed_time_ms = int((end_time - start_time) * 1000)
-        log_line += f', time_ms="{elapsed_time_ms}"'
-        print(log_line)
 
-
-def process_tweets(twapi: Twython, db: database.Database, tweets: list):
-    start_time = timer()
-    log_line = f'Processing tweets count="{len(tweets)}"'
+    # Process tweets one by one from oldest to newest
     try:
-        response_count = 0
-        for tweet in tweets:
-            replied_to_user = process_tweet(tweet, twapi, db)
-            if replied_to_user:
-                response_count += 1
-                # sleep for 1 second after replying to user
-                time.sleep(TWITTER_REPLY_DELAY)
-        log_line += f', response_count="{response_count}", status="SUCCESS"'
+        processed_count = 0
+        for twt in reversed(tweets):
+            process_tweet(
+                twt,
+                store,
+                twclient,
+                config,
+            )
+            processed_count += 1
+        onelog.info(processed_count=processed_count)
     except Exception as err:
-        log_line += f', error="{err}", status="ERROR"'
-        raise
-    finally:
-        end_time = timer()
-        elapsed_time_ms = int((end_time - start_time) * 1000)
-        log_line += f', time_ms="{elapsed_time_ms}"'
-        print(log_line)
-
-
-def handle_process_tweets(db: database.Database):
-    try:
-        twapi = Twython(
-            TWITTER_CONSUMER_KEY,
-            TWITTER_CONSUMER_SECRET,
-            TWITTER_ACCESS_TOKEN,
-            TWITTER_ACCESS_SECRET,
+        onelog.info(
+            processed_count=processed_count, error=str(err), status="FAILED"
         )
-        tweets = search_tweets(twapi)
-        process_tweets(twapi, db, tweets)
-        return flask.jsonify({"status": "success"})
-    except Exception as err:
         traceback.print_exc()
         print(err)
         return flask.jsonify({"status": "failed", "error": str(err)}), 500
+
+    return flask.jsonify({"status": "success"})
