@@ -4,8 +4,8 @@ from .mongodb import get_mongodb_connection
 
 
 class SMVStore(object):
-    """Access SMV Store (currently backed with MongoDB)
-    """
+    """Access SMV Store (currently backed with MongoDB)"""
+
     def __init__(self, db: database.Database) -> None:
         self.db = db
 

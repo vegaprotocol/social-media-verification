@@ -5,19 +5,17 @@ from handlers.parties import handle_parties
 
 
 def test_handle_parties(capsys):
-    collection = mock.MagicMock()
-    db = mock.MagicMock()
-    db.get_collection.return_value = collection
-    collection.find.return_value = [
-        {"pub_key": "pub key 1", "twitter_handle": "handle 1"},
-        {"pub_key": "pub key 2", "twitter_handle": "handle 2"},
+    store = mock.MagicMock()
+    store.get_parties.return_value = [
+        {"party_id": "pub key 1", "twitter_handle": "handle 1"},
+        {"party_id": "pub key 2", "twitter_handle": "handle 2"},
     ]
 
     app = flask.Flask("test")
 
     # execute
     with app.test_request_context():
-        response = handle_parties(db)  # type: flask.Response
+        response = handle_parties(store)  # type: flask.Response
 
     # validate response
     assert response.status_code == 200
@@ -27,9 +25,8 @@ def test_handle_parties(capsys):
     ]
 
     # validate function calls
-    assert db.mock_calls == [
-        mock.call.get_collection("identities"),
-        mock.call.get_collection().find(),
+    assert store.mock_calls == [
+        mock.call.get_parties(),
     ]
 
     # validate log
