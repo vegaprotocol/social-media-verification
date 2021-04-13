@@ -13,6 +13,6 @@ def router(request: flask.Request):
     if request.path.endswith("/parties"):
         return handle_parties(store=store)
     elif request.path.endswith("/process-tweets"):
-        return handle_process_tweets(db=DB)
+        return handle_process_tweets(db=store.db)
     else:
         flask.abort(404, description="Resource not found")
