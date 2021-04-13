@@ -11,7 +11,6 @@ MONGO_DB_NAME = "[DATABASE NAME]"
 os.environ[
     "MONGO_SECRET"
 ] = f"""{{
-
     "DB_USER": "{MONGO_DB_USER}",
     "DB_PASS": "{MONGO_DB_PASS}",
     "DB_HOSTNAME": "{MONGO_DB_HOSTNAME}",

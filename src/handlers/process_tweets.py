@@ -136,6 +136,7 @@ def handle_process_tweets(
         twitter_search_text = (
             f"{config.twitter_search_text} @{twclient.account_name}"
         )
+        onelog.info(twitter_search_text=twitter_search_text)
         # TODO: use since_tweet_id (get it from mongo db)
         tweets = list(
             twclient.search(
