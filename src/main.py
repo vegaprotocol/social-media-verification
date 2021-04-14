@@ -38,3 +38,7 @@ def router(request: flask.Request):
         )
     else:
         flask.abort(404, description="Resource not found")
+
+
+if __name__ == "__main__":
+    print("main.py: IN MAIN")

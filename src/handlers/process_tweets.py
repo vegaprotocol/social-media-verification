@@ -16,22 +16,23 @@ from services.onelog import onelog_json, OneLog
 
 
 def is_sig_valid(sig, msg, pub_key):
-    verifying_key = ed25519.VerifyingKey(bytes.fromhex(pub_key))
-    s = hashlib.sha3_256()
-    s.update(bytes(msg, "UTF-8"))
-    msg = s.digest()
-    bytesig = base64.b64decode(sig)
     try:
+        verifying_key = ed25519.VerifyingKey(bytes.fromhex(pub_key))
+        s = hashlib.sha3_256()
+        s.update(bytes(msg, "UTF-8"))
+        msg = s.digest()
+        bytesig = base64.b64decode(sig)
         verifying_key.verify(bytesig, msg)
         return True
-    except ed25519.BadSignatureError:
+    except (ed25519.BadSignatureError, Exception):
         return False
     return False
 
 
 def parse_message(msg: str, prefix: str) -> Tuple[str, str]:
     m = re.match(
-        fr"^{prefix}\s+(?P<PUBKEY>[^\s]+)\s+(?P<SIGNED_MESSAGE>[^\s]+)", msg
+        fr"^{prefix}\s+(?P<PUBKEY>[0-9a-fA-F]+)\s+(?P<SIGNED_MESSAGE>[^\s]+)",
+        msg,
     )
     if not m:
         raise TweetInvalidFormatError("Wrong format")
@@ -62,7 +63,7 @@ def process_tweet(
         tweet_message=tweet.full_text,
     )
 
-    if storage.get_tweet_record(tweet.tweet_id):
+    if storage.get_tweet_record(tweet.tweet_id) is not None:
         onelog.info(tweet_processed=True, status="SKIP")
     else:
         storage.upsert_tweet_record(
@@ -76,7 +77,7 @@ def process_tweet(
             pubkey, signed_message = parse_message(
                 tweet.full_text, tweet_prefix
             )
-            onelog.info(pubkey, signed_message)
+            onelog.info(pubkey=pubkey, signed_message=signed_message)
             validate_signature(
                 pubkey,
                 signed_message,

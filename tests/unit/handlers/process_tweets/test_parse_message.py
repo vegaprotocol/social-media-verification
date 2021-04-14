@@ -11,12 +11,12 @@ from handlers.process_tweets import parse_message
     [
         (
             (
-                "I'm taking a ride with @tweeter_acc "
+                "I'm taking a ride with @twitter_account "
                 "6308f99aa2d2a34cb55da860d4cc7127c23ee7036832f947f4a69d30afb6797e "  # noqa: E501
                 "BqWxgF8o+qKolb/NdnRPtF5eHQyyOa2laUul6DyAEfEKCOC33UZk3wGfv6QCtYnFDuAPNVnZNst9emz3DgYxCw== "  # noqa: E501
                 "https://www.wired.co.uk/article/silicon-roundabout #oldstreettest"  # noqa: E501
             ),
-            "I'm taking a ride with @tweeter_acc",
+            "I'm taking a ride with @twitter_account",
             "6308f99aa2d2a34cb55da860d4cc7127c23ee7036832f947f4a69d30afb6797e",
             "BqWxgF8o+qKolb/NdnRPtF5eHQyyOa2laUul6DyAEfEKCOC33UZk3wGfv6QCtYnFDuAPNVnZNst9emz3DgYxCw==",  # noqa: E501
         ),
@@ -47,7 +47,7 @@ def test_parse_message(
     ],
 )
 def test_parse_message_whitechar(whitechar):
-    prefix = "I'm taking a ride with @tweeter_acc"
+    prefix = "I'm taking a ride with @twitter_account"
     pubkey = "6308f99aa2d2a34cb55da860d4cc7127c23ee7036832f947f4a69d30afb6797e"
     signed_message = "BqWxgF8o+qKolb/NdnRPtF5eHQyyOa2laUul6DyAEfEKCOC33UZk3wGfv6QCtYnFDuAPNVnZNst9emz3DgYxCw=="  # noqa: E501
     suffix = (
