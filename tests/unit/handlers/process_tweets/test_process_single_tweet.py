@@ -183,7 +183,7 @@ def test_process_tweet_invalid_format(capsys):
     assert twclient.mock_calls == [
         mock.call.reply(
             smv_config.twitter_reply_message_invalid_format,
-            tweet_invalid_format.tweet_id,
+            tweet_invalid_format,
         )
     ]
 
@@ -239,6 +239,6 @@ def test_process_tweet_invalid_signature(capsys):
     assert twclient.mock_calls == [
         mock.call.reply(
             smv_config.twitter_reply_message_invalid_signature,
-            tweet_invalid_signature.tweet_id,
+            tweet_invalid_signature,
         )
     ]
