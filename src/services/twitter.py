@@ -114,8 +114,20 @@ class TwitterClient(object):
 
             query["max_id"] = tweet_data["id"] - 1
 
-    def reply(self, msg: str, tweet_id: int):
+    def reply(self, msg: str, tweet: Tweet):
+        msg = f"@{tweet.user_screen_name} {msg}"
+        print(
+            json.dumps(
+                {
+                    "twitter_reply": {
+                        "text": msg,
+                        "tweet": tweet,
+                        "from": self.account_name,
+                    }
+                }
+            )
+        )
         self.twapi.update_status(
             status=msg,
-            in_reply_to_status_id=tweet_id,
+            in_reply_to_status_id=tweet.tweet_id,
         )

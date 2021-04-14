@@ -102,7 +102,7 @@ def process_tweet(
             # reply on twitter
             twclient.reply(
                 config.twitter_reply_message_invalid_format,
-                tweet.tweet_id,
+                tweet,
             )
             # update DB
             storage.upsert_tweet_record(
@@ -115,7 +115,7 @@ def process_tweet(
             # reply on twitter
             twclient.reply(
                 config.twitter_reply_message_invalid_signature,
-                tweet.tweet_id,
+                tweet,
             )
             # update DB
             storage.upsert_tweet_record(
