@@ -62,12 +62,17 @@ class TwitterClient(object):
             twitter_secret = json.loads(gcp_secret_name)
 
         self.account_name = twitter_secret["ACCOUNT_NAME"]
-        self._app_key = twitter_secret["CONSUMER_KEY"]
-        self._app_secret = twitter_secret["CONSUMER_SECRET"]
+        self._consumer_key = twitter_secret["CONSUMER_KEY"]
+        self._consumer_secret = twitter_secret["CONSUMER_SECRET"]
+        self._access_token = twitter_secret["ACCESS_TOKEN"]
+        self._access_secret = twitter_secret["ACCESS_SECRET"]
 
-        tw_auth = Twython(self._app_key, self._app_secret, oauth_version=2)
-        token = tw_auth.obtain_access_token()
-        self.twapi = Twython(self._app_key, access_token=token)
+        self.twapi = Twython(
+            self._consumer_key,
+            self._consumer_secret,
+            self._access_token,
+            self._access_secret,
+        )
 
     def search(
         self,

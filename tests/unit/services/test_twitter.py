@@ -11,6 +11,8 @@ TWITTER_SECRET_DATA = {
     "ACCOUNT_NAME": "user1",
     "CONSUMER_KEY": "pa55w0rd",
     "CONSUMER_SECRET": "5ecret",
+    "ACCESS_TOKEN": "accessT",
+    "ACCESS_SECRET": "a5ecrettt",
 }
 
 
@@ -37,9 +39,7 @@ def test_twitter_client_constructor(
     )
 
     assert TwythonMock.mock_calls == [
-        mock.call("pa55w0rd", "5ecret", oauth_version=2),
-        mock.call().obtain_access_token(),
-        mock.call("pa55w0rd", access_token="abc"),
+        mock.call("pa55w0rd", "5ecret", "accessT", "a5ecrettt"),
     ]
 
 
