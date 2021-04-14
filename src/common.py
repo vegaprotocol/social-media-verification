@@ -17,3 +17,15 @@ class SMVConfig(object):
             twitter_reply_message_invalid_signature
         )
         self.twitter_reply_delay = twitter_reply_delay
+
+
+class SMVError(Exception):
+    pass
+
+
+class TweetInvalidFormatError(SMVError):
+    pass
+
+
+class TweetInvalidSignatureError(SMVError):
+    pass
