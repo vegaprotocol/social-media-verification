@@ -5,6 +5,7 @@ import base64
 import flask
 import traceback
 import re
+import time
 from services.twitter import TwitterClient, Tweet
 from services.smv_storage import SMVStorage
 from common import (
@@ -100,6 +101,7 @@ def process_tweet(
         except TweetInvalidFormatError:
             onelog.info(error="Invalid Format", status="FAILED")
             # reply on twitter
+            time.sleep(config.twitter_reply_delay)
             twclient.reply(
                 config.twitter_reply_message_invalid_format,
                 tweet,
@@ -113,6 +115,7 @@ def process_tweet(
         except TweetInvalidSignatureError:
             onelog.info(error="Invalid Signature", status="FAILED")
             # reply on twitter
+            time.sleep(config.twitter_reply_delay)
             twclient.reply(
                 config.twitter_reply_message_invalid_signature,
                 tweet,
