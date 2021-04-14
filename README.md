@@ -1,6 +1,20 @@
+[![Python linters](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python-linters.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python-linters.yml)
+[![Python tests](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python-unit-tests.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/python-unit-tests.yml)
+[![Deploy to Devnet](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy-devnet.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy-devnet.yml)
+[![Deploy to Stagnet and Testnet](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy.yml/badge.svg)](https://github.com/vegaprotocol/social-media-verification/actions/workflows/deploy.yml)
+[![license](https://img.shields.io/badge/License-MIT-purple.svg)](LICENSE)
+
 # Social Media Verification
 
 This is a simple Python script that searches Twitter for tweets that contain an expected string. Once it finds a matching tweet, it attempts to extract a public key and signature from the end of the Tweet, verify the signature, and if it's valid, store the Twitter identity in MongoDB alongside the public key.
+
+## Deploying to Devnet and Stagnet/Testnet
+
+The process is fully automated:
+* once you merge your change onto `develop` branch it will automatically deploy to Devnet. (see [GitHub Workflow](.github/workflows/deploy-devnet.yml) for details)
+* once you merge `develop` into `main` branch it will automatically deploy to Stagnet and Testnet. (see [GitHub Workflow](.github/workflows/deploy.yml) for details)
+
+Important: Please note that all files from [src](src) directory are deployed, so be careful what you add/remove there.
 
 ## Local development
 
@@ -36,7 +50,7 @@ python3 -m venv <venv>
 source <venv>/bin/activate
 
 # install dependencies
-python3 -m pip install -r requirements.txt
+python3 -m pip install -r src/requirements.txt
 python3 -m pip install -r requirements-dev.txt
 
 # Develop & run unit tests

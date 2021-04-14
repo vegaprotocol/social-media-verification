@@ -8,7 +8,9 @@ cd "${WORK_DIR}"
 # disable creation of python bytecode files
 export PYTHONDONTWRITEBYTECODE=1
 
+export PYTHONPATH=".:src/"
+
 # run pytest with coverage
 python3 -m pytest -p no:cacheprovider \
-                  --cov=smv --cov-report=term-missing --cov-config="${WORK_DIR}/tests/unit/.coveragerc" \
+                  --cov=src --cov-report=term-missing --cov-config="${WORK_DIR}/tests/unit/.coveragerc" \
                   tests/unit

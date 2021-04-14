@@ -14,6 +14,7 @@ docker build --file ./scripts/test.dockerfile --tag "smv-test" .
 docker run -it --rm \
     --volume "$(pwd)":/workspace:ro \
     --workdir /workspace \
+    --env PYTHONPATH=./src \
     "smv-test" \
     "${CMD}"
 
