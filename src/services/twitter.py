@@ -26,6 +26,11 @@ class Tweet(object):
             f"full_text={self.full_text!r})"
         )
 
+    def toJSON(self):
+        return json.dumps(
+            self, default=lambda o: o.__dict__, sort_keys=True, indent=4
+        )
+
 
 class TwitterClient(object):
     def __init__(
@@ -121,7 +126,7 @@ class TwitterClient(object):
                 {
                     "twitter_reply": {
                         "text": msg,
-                        "tweet": tweet,
+                        "tweet": tweet.toJSON(),
                         "from": self.account_name,
                     }
                 }
