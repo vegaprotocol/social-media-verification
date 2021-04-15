@@ -1,0 +1,33 @@
+{
+	"name": "SMV remote development",
+	"build": {
+		"dockerfile": "../scripts/test.dockerfile",
+		"context": ".."
+	},
+
+    "containerEnv": {
+        "PYTHONPATH": "${containerWorkspaceFolder}/src"
+    },
+
+	"settings": { 
+		"terminal.integrated.shell.linux": "/bin/bash",
+		"python.pythonPath": "/usr/local/bin/python",
+		"python.linting.enabled": true,
+		"python.linting.pylintEnabled": true,
+		"python.formatting.blackPath": "/usr/local/bin/black",
+		"python.linting.flake8Path": "/usr/local/bin/flake8",
+		"python.linting.pylintPath": "/usr/local/bin/pylint"
+	},
+
+	// Add the IDs of extensions you want installed when the container is created.
+	"extensions": [
+		"ms-python.python",
+        "ms-python.vscode-pylance"
+	]
+
+	// Use 'forwardPorts' to make a list of ports inside the container available locally.
+	// "forwardPorts": [],
+
+	// Use 'postCreateCommand' to run commands after the container is created.
+	// "postCreateCommand": "pip3 install --user -r requirements.txt",
+}

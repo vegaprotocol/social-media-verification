@@ -48,6 +48,10 @@ If you are TDD fan, then you will like this
 make tdd
 ```
 
+### VSCode remote development in docker
+
+You can find config in [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json).
+
 ### Run unit tests on your computer
 
 ```bash
