@@ -32,9 +32,18 @@ class SMVStorage(object):
                 "party_id": item["pub_key"],
                 "twitter_handle": item["twitter_handle"],
                 "twitter_user_id": item["twitter_user_id"],
-                "last_modified": item["last_modified"]
-                .replace(tzinfo=timezone.utc)
-                .isoformat(),
+                "last_modified": int(
+                    item["last_modified"]
+                    .replace(tzinfo=timezone.utc)
+                    .timestamp()
+                ),
+                # created might be missing in DB - use "last_modified" then
+                # TODO: remove usage of "last_modified" once no longer neede
+                "created": int(
+                    item.get("created", item["last_modified"])
+                    .replace(tzinfo=timezone.utc)
+                    .timestamp()
+                ),
             }
             for item in self.col_identities.find()
         ]
@@ -45,17 +54,22 @@ class SMVStorage(object):
         user_id: int,
         screen_name: str,
     ):
+        now = datetime.utcnow().replace(tzinfo=timezone.utc)
         self.col_identities.update_one(
             {"pub_key": pub_key},
             {
                 "$set": {
                     "twitter_user_id": user_id,
                     "twitter_handle": screen_name,
-                    "last_modified": datetime.utcnow().replace(
-                        tzinfo=timezone.utc
-                    ),
-                }
+                    "last_modified": now,
+                },
+                # `created` field is modified on document INSERT only.
+                # It is not modified on document UPDATE.
+                "$setOnInsert": {
+                    "created": now,
+                },
             },
+            # UPSERT !!
             upsert=True,
         )
 
