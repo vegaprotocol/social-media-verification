@@ -32,6 +32,9 @@ class SMVStorage(object):
                 "party_id": item["pub_key"],
                 "twitter_handle": item["twitter_handle"],
                 "twitter_user_id": item["twitter_user_id"],
+                "last_modified": item["last_modified"]
+                .replace(tzinfo=timezone.utc)
+                .isoformat(),
             }
             for item in self.col_identities.find()
         ]
