@@ -2,4 +2,6 @@ flask==1.1.2
 pylint
 pytest
 pytest-cov
+black
+flake8
 watchdog[watchmedo]
