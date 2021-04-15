@@ -1,4 +1,5 @@
-from typing import Any, Optional
+from typing import Any, Optional, Dict
+import pymongo
 from pymongo import database
 from pymongo.collection import Collection
 from datetime import datetime, timezone
@@ -85,3 +86,23 @@ class SMVStorage(object):
             {"$set": data},
             upsert=True,
         )
+
+    def get_tweet_count_by_status(self) -> Dict[str, int]:
+        return {
+            s["_id"]: s["count"]
+            for s in self.col_tweets.aggregate(
+                [
+                    {"$group": {"_id": "$status", "count": {"$sum": 1}}},
+                    {"$sort": {"_id": pymongo.DESCENDING}},
+                ]
+            )
+        }
+
+    def get_last_tweet_id(self) -> Optional[int]:
+        last_tweet = self.col_tweets.find_one(
+            projection={"tweet_id": 1, "_id": False},
+            sort=[("tweet_id", pymongo.DESCENDING)],
+        )
+        if last_tweet:
+            return last_tweet["tweet_id"]
+        return None
