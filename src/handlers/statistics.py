@@ -8,10 +8,22 @@ from services.onelog import onelog_json, OneLog
 def handle_statistics(
     storage: SMVStorage, onelog: OneLog = None
 ) -> flask.Response:
-    return flask.jsonify(
-        {
-            "time": datetime.utcnow().replace(tzinfo=timezone.utc).isoformat(),
-            "tweet_status_count": storage.get_tweet_count_by_status(),
-            "last_tweet_id": storage.get_last_tweet_id(),
-        }
-    )
+    try:
+        return flask.jsonify(
+            {
+                "time": datetime.utcnow()
+                .replace(tzinfo=timezone.utc)
+                .isoformat(),
+                "tweet_status_count": storage.get_tweet_count_by_status(),
+                "last_tweet_id": storage.get_last_tweet_id(),
+                "total_tweets": storage.get_tweet_count(),
+                "status": "success",
+            }
+        )
+    except Exception as err:
+        return flask.jsonify(
+            {
+                "status": "failed",
+                "error": str(err),
+            }
+        )

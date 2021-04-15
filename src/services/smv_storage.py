@@ -106,3 +106,6 @@ class SMVStorage(object):
         if last_tweet:
             return last_tweet["tweet_id"]
         return None
+
+    def get_tweet_count(self) -> int:
+        return self.col_tweets.count_documents({})
