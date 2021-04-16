@@ -74,3 +74,7 @@ deactivate
 ### Manual testing
 
 You can manually test integration with Twitter and MongoDB with scripts in [tests/manual](tests/manual) directory. Remember to put proper credentials there.
+
+* Example to test `/statistics` endpoint:
+ - update MonboDB credentials in `tests/manual/smv_storage.py` (don't commit this change!!),
+ - run `./tests/manual/statistics_handler.py`
