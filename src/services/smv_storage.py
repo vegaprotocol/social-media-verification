@@ -37,12 +37,8 @@ class SMVStorage(object):
                     .replace(tzinfo=timezone.utc)
                     .timestamp()
                 ),
-                # created might be missing in DB - use "last_modified" then
-                # TODO: remove usage of "last_modified" once no longer neede
                 "created": int(
-                    item.get("created", item["last_modified"])
-                    .replace(tzinfo=timezone.utc)
-                    .timestamp()
+                    item["created"].replace(tzinfo=timezone.utc).timestamp()
                 ),
             }
             for item in self.col_identities.find()
