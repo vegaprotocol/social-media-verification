@@ -6,7 +6,14 @@
 
 # Social Media Verification
 
-This is a simple Python script that searches Twitter for tweets that contain an expected string. Once it finds a matching tweet, it attempts to extract a public key and signature from the end of the Tweet, verify the signature, and if it's valid, store the Twitter identity in MongoDB alongside the public key.
+This is an HTTP serverless application that searches Twitter for tweets containing specific text.
+
+For each matched tweet, the script:
+* extracts a public key and a signed message from the tweet,
+* validates that the signature is for a message containing one word: user's handle (the username after @),
+* if validation is successful, then the public key and user's handle are saved to a database,
+
+The list of pairs: public-key + user-handle is available on the other endpoint.
 
 ## Deploying to Devnet and Stagnet/Testnet
 
@@ -41,6 +48,10 @@ If you are TDD fan, then you will like this
 make tdd
 ```
 
+### VSCode remote development in docker
+
+You can find config in [.devcontainer/devcontainer.json](.devcontainer/devcontainer.json).
+
 ### Run unit tests on your computer
 
 ```bash
@@ -60,20 +71,10 @@ make test
 deactivate
 ```
 
-## Environment Setup
+### Manual testing
 
-You will need Twitter API keys in your environment for the app to work. Look at `.env.sample` to see which variables are missing. Once you have them, you should rename `.env.sample` to `.env` and then you will be ready to try and start the app.
+You can manually test integration with Twitter and MongoDB with scripts in [tests/manual](tests/manual) directory. Remember to put proper credentials there.
 
-## Build & Running
-
-The app should be built with Docker:
-
-`docker build -t social-media-verification .`
-
-Then start the containers via Docker compose:
-
-`docker-compose up -d`
-
-The following command will stop the app:
-
-`docker-compose down`
+* Example to test `/statistics` endpoint:
+ - update MonboDB credentials in `tests/manual/smv_storage.py` (don't commit this change!!),
+ - run `./tests/manual/statistics_handler.py`

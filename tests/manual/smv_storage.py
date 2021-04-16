@@ -19,8 +19,13 @@ os.environ[
 
 storage = SMVStorage.get_storage(gcp_secret_name="MONGO_SECRET")
 
-print(f"parties={storage.get_parties()}")
+if __name__ == "__main__":
+    print(f"parties={storage.get_parties()}")
 
-# storage.upsert_tweet_record(1233, text="gg", screen_name="abc_userrrrrr")
+    # storage.upsert_tweet_record(1233, text="gg", screen_name="abc_userrrrrr")
 
-print(f"tweet_record={storage.get_tweet_record(1233)}")
+    print(f"tweet_record={storage.get_tweet_record(1233)}")
+
+    print(f"get_tweet_count_by_status={storage.get_tweet_count_by_status()}")
+
+    print(f"get_last_tweet_id={storage.get_last_tweet_id()}")

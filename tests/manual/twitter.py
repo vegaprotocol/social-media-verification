@@ -25,7 +25,8 @@ twclient = TwitterClient(
     gcp_secret_name="TWITTER_SECRET",
 )
 
-i = 0
-for tweet in reversed(list(twclient.search(TWITTER_SEARCH_TEXT))):
-    i += 1
-    print(f" ------ {i} {tweet}")
+if __name__ == "__main__":
+    i = 0
+    for tweet in reversed(list(twclient.search(TWITTER_SEARCH_TEXT))):
+        i += 1
+        print(f" ------ {i} {tweet}")

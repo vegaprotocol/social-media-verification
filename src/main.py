@@ -2,8 +2,11 @@ import flask
 import os
 from common import SMVConfig
 from services.smv_storage import SMVStorage
-from handlers import handle_parties
-from handlers.process_tweets import handle_process_tweets
+from handlers import (
+    handle_parties,
+    handle_process_tweets,
+    handle_statistics,
+)
 from services.twitter import TwitterClient
 
 CONFIG = SMVConfig(
@@ -36,9 +39,7 @@ def router(request: flask.Request):
             twclient=TWCLIENT,
             config=CONFIG,
         )
+    elif request.path.endswith("/statistics"):
+        return handle_statistics(storage=STORAGE)
     else:
         flask.abort(404, description="Resource not found")
-
-
-if __name__ == "__main__":
-    print("main.py: IN MAIN")
