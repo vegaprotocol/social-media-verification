@@ -21,10 +21,10 @@ jobs:
     env:
       MONGO_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_GCP_MONGO_SECRET_NAME }}/versions/latest
       TWITTER_SECRET_NAME: projects/${{ secrets.GCP_PROJECT_ID }}/secrets/${{ secrets.SMV_GCP_TWITTER_SECRET_NAME }}/versions/latest
-      TWITTER_SEARCH_TEXT: I'm taking a ride with
+      TWITTER_SEARCH_TEXT: I'm taking a ride on
       TWITTER_REPLY_SUCCESS: Thanks for joining!
-      TWITTER_REPLY_INVALID_FORMAT: The format of your Tweet is invalid. Please join https://discord.com and ask a team member to help.
-      TWITTER_REPLY_INVALID_SIGNATURE: The signature in your Tweet is invalid. Please join https://discord.com and ask a team member to help.
+      TWITTER_REPLY_INVALID_FORMAT: The format of your Tweet is invalid. Please join https://vega.xyz/discord and ask a team member to help.
+      TWITTER_REPLY_INVALID_SIGNATURE: The signature in your Tweet is invalid. Please join https://vega.xyz/discord and ask a team member to help.
 
     steps:
       - name: Check out code
