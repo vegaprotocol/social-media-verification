@@ -2,6 +2,7 @@
 import os
 
 from services.twitter import TwitterClient
+from handlers.process_tweets import parse_message, validate_signature
 
 TWITTER_ACCOUNT_NAME = "[PUT TWITTER ACCOUNT NAME WITHOUT @]"
 TWITTER_CONSUMER_KEY = "[PUT TWITTER APP KEY/CONSUMER KEY]"
@@ -9,7 +10,7 @@ TWITTER_CONSUMER_SECRET = "[PUT TWITTER APP SECRET/CONSUMER SECRET]"
 TWITTER_ACCESS_TOKEN = "[PUT TWITTER USER ACCESS TOKEN"
 TWITTER_ACCESS_SECRET = "[PUT TWITTER USER ACCESS SECRET]"
 
-TWITTER_SEARCH_TEXT = f"I'm taking a ride with @{TWITTER_ACCOUNT_NAME}"
+TWITTER_SEARCH_TEXT = f"I'm taking a ride on @{TWITTER_ACCOUNT_NAME}"
 
 os.environ[
     "TWITTER_SECRET"
@@ -27,6 +28,20 @@ twclient = TwitterClient(
 
 if __name__ == "__main__":
     i = 0
-    for tweet in reversed(list(twclient.search(TWITTER_SEARCH_TEXT))):
+    for tweet in twclient.tweets(TWITTER_SEARCH_TEXT):
+        try:
+            parsed = "not parsable"
+            pubkey, signed_message = parse_message(
+                tweet.full_text, TWITTER_SEARCH_TEXT,
+            )
+            parsed = "invalid signature"
+            validate_signature(
+                pubkey,
+                signed_message,
+                twitter_handle=tweet.user_screen_name,
+            )
+            parsed = "OK"
+        except:
+            pass
         i += 1
-        print(f" ------ {i} {tweet}")
+        print(f" ------ {i} [{parsed}]: {tweet}, url: https://twitter.com/{tweet.user_screen_name}/status/{tweet.tweet_id}")

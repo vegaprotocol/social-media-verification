@@ -101,15 +101,11 @@ def process_tweet(
         except TweetInvalidFormatError:
             onelog.info(error="Invalid Format", status="FAILED")
             # reply on twitter
-            time.sleep(config.twitter_reply_delay)
-            twclient.reply(
-                config.twitter_reply_message_invalid_format,
-                tweet,
-            )
+            # Do not reply to user on Twitter
             # update DB
             storage.upsert_tweet_record(
                 tweet_id=tweet.tweet_id,
-                reply=config.twitter_reply_message_invalid_format,
+                reply="",
                 status="INVALID_FORMAT",
             )
         except TweetInvalidSignatureError:
@@ -141,10 +137,11 @@ def handle_process_tweets(
             f"{config.twitter_search_text} @{twclient.account_name}"
         )
         onelog.info(twitter_search_text=twitter_search_text)
-        # TODO: use since_tweet_id (get it from mongo db)
+        since_tweet_id = storage.get_last_tweet_id()
+        onelog.info(since_tweet_id=since_tweet_id)
         tweets = list(
-            twclient.search(
-                twitter_search_text,
+            twclient.tweets(
+                twitter_search_text, since_tweet_id,
             )
         )
         onelog.info(total_count=len(tweets))

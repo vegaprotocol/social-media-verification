@@ -174,18 +174,13 @@ def test_process_tweet_invalid_format(capsys):
         ),
         mock.call.upsert_tweet_record(
             tweet_id=tweet_invalid_format.tweet_id,
-            reply=smv_config.twitter_reply_message_invalid_format,
+            reply="",
             status="INVALID_FORMAT",
         ),
     ]
 
     # assert twitter API calls
-    assert twclient.mock_calls == [
-        mock.call.reply(
-            smv_config.twitter_reply_message_invalid_format,
-            tweet_invalid_format,
-        )
-    ]
+    assert twclient.mock_calls == []
 
 
 def test_process_tweet_invalid_signature(capsys):
