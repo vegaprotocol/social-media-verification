@@ -46,7 +46,7 @@ def validate_signature(pubkey: str, signed_message: str, twitter_handle: str):
     # - start with @ or without
     # - end with whitespace
     # - handle upper and lowercase
-    for whitechar in ["", " ", "\n", "\t"]:
+    for whitechar in ["", " ", "\n", "\r\n", "\t"]:
         for handle in set(
             [twitter_handle, twitter_handle.upper(), twitter_handle.lower()]
         ):
