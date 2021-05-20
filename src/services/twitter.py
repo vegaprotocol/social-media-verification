@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Iterator, List
 import os
 import json
 from twython import Twython
@@ -25,6 +25,14 @@ class Tweet(object):
             f"user_screen_name={self.user_screen_name!r}, "
             f"full_text={self.full_text!r})"
         )
+
+    def __eq__(self, other):
+        if isinstance(other, Tweet):
+            return self.__dict__ == other.__dict__
+        return False
+
+    def __hash__(self):
+        return hash(self.tweet_id)
 
     def toJSON(self):
         return json.dumps(
@@ -118,6 +126,70 @@ class TwitterClient(object):
                 break
 
             query["max_id"] = tweet_data["id"] - 1
+
+    def mentions(
+        self,
+        since_tweet_id: int = None,
+    ) -> Iterator[Tweet]:
+        """Get Tweet timelines
+
+        Args:
+            since_tweet_id (int): Return only tweets newer than
+
+        Returns:
+            Iterator with Tweet
+        """
+
+        query = {
+            "count": 100,
+            "include_entities": True,
+            "tweet_mode": "extended",
+        }
+
+        if since_tweet_id:
+            query["since_id"] = since_tweet_id
+
+        while True:
+            result = self.twapi.get_mentions_timeline(**query)
+
+            if len(result) == 0:
+                break
+
+            for tweet_data in result:
+                yield Tweet(
+                    tweet_id=tweet_data["id"],
+                    user_id=tweet_data["user"]["id"],
+                    user_screen_name=tweet_data["user"]["screen_name"],
+                    full_text=tweet_data["full_text"],
+                )
+
+            query["max_id"] = tweet_data["id"] - 1
+
+    def get_tweets(
+        self,
+        search_text: str,
+        since_tweet_id: int = None,
+    ) -> List[Tweet]:
+        """Gathers all Tweets from:
+        - using 'search' call with search_text,
+        - user's timeline
+
+        Args:
+            search_text (str): A text that tweet needs to contain
+            since_tweet_id (int): Return only tweets newer than
+
+        Returns:
+            Ordered list of Tweets
+        """
+        result = list(
+            self.search(search_text, since_tweet_id=since_tweet_id)
+        ) + list(self.mentions(since_tweet_id=since_tweet_id))
+        # remove duplicates
+        result = list(set(result))
+        # order ascending
+        result = sorted(result, key=lambda t: t.tweet_id)
+
+        return result
 
     def reply(self, msg: str, tweet: Tweet):
         msg = f"@{tweet.user_screen_name} {msg}"

@@ -42,9 +42,18 @@ def parse_message(msg: str, prefix: str) -> Tuple[str, str]:
 
 
 def validate_signature(pubkey: str, signed_message: str, twitter_handle: str):
-    for msg in [twitter_handle, f"@{twitter_handle}"]:
-        if is_sig_valid(sig=signed_message, msg=msg, pub_key=pubkey):
-            return
+    # Check different cases:
+    # - start with @ or without
+    # - end with whitespace
+    # - handle upper and lowercase
+    for whitechar in ["", " ", "\n", "\r\n", "\t"]:
+        for handle in set(
+            [twitter_handle, twitter_handle.upper(), twitter_handle.lower()]
+        ):
+            for prefix in ["", "@"]:
+                msg = f"{prefix}{handle}{whitechar}"
+                if is_sig_valid(sig=signed_message, msg=msg, pub_key=pubkey):
+                    return
     raise TweetInvalidSignatureError("Invalid signature")
 
 
@@ -101,15 +110,11 @@ def process_tweet(
         except TweetInvalidFormatError:
             onelog.info(error="Invalid Format", status="FAILED")
             # reply on twitter
-            time.sleep(config.twitter_reply_delay)
-            twclient.reply(
-                config.twitter_reply_message_invalid_format,
-                tweet,
-            )
+            # Do not reply to user on Twitter
             # update DB
             storage.upsert_tweet_record(
                 tweet_id=tweet.tweet_id,
-                reply=config.twitter_reply_message_invalid_format,
+                reply="",
                 status="INVALID_FORMAT",
             )
         except TweetInvalidSignatureError:
@@ -141,10 +146,12 @@ def handle_process_tweets(
             f"{config.twitter_search_text} @{twclient.account_name}"
         )
         onelog.info(twitter_search_text=twitter_search_text)
-        # TODO: use since_tweet_id (get it from mongo db)
+        since_tweet_id = storage.get_last_tweet_id()
+        onelog.info(since_tweet_id=since_tweet_id)
         tweets = list(
-            twclient.search(
+            twclient.get_tweets(
                 twitter_search_text,
+                since_tweet_id,
             )
         )
         onelog.info(total_count=len(tweets))

@@ -93,3 +93,32 @@ def test_search():
             max_id=1381726215963168768,
         ),
     ]
+
+
+def test_mentions():
+    twclient = mock.MagicMock()
+    twclient.twapi.get_mentions_timeline.side_effect = [
+        [tweet_1],
+        [],
+    ]
+    since_id = 123
+
+    result = list(TwitterClient.mentions(twclient, since_id))
+
+    assert len(result) == 1
+
+    assert twclient.mock_calls == [
+        mock.call.twapi.get_mentions_timeline(
+            count=100,
+            include_entities=True,
+            tweet_mode="extended",
+            since_id=since_id,
+        ),
+        mock.call.twapi.get_mentions_timeline(
+            count=100,
+            include_entities=True,
+            tweet_mode="extended",
+            since_id=since_id,
+            max_id=tweet_1["id"] - 1,
+        ),
+    ]
