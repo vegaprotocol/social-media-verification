@@ -1,4 +1,4 @@
-from typing import Iterator
+from typing import Iterator, List
 import os
 import json
 from twython import Twython
@@ -166,11 +166,11 @@ class TwitterClient(object):
             query["max_id"] = tweet_data["id"] - 1
 
 
-    def tweets(
+    def get_tweets(
         self,
         search_text: str,
         since_tweet_id: int = None,
-    ) -> Iterator[Tweet]:
+    ) -> List[Tweet]:
         """Gathers all Tweets from:
         - using 'search' call with search_text,
         - user's timeline

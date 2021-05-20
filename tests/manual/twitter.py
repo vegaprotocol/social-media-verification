@@ -28,7 +28,7 @@ twclient = TwitterClient(
 
 if __name__ == "__main__":
     i = 0
-    for tweet in twclient.tweets(TWITTER_SEARCH_TEXT):
+    for tweet in twclient.get_tweets(TWITTER_SEARCH_TEXT):
         try:
             parsed = "not parsable"
             pubkey, signed_message = parse_message(

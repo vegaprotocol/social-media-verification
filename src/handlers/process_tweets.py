@@ -140,7 +140,7 @@ def handle_process_tweets(
         since_tweet_id = storage.get_last_tweet_id()
         onelog.info(since_tweet_id=since_tweet_id)
         tweets = list(
-            twclient.tweets(
+            twclient.get_tweets(
                 twitter_search_text, since_tweet_id,
             )
         )
