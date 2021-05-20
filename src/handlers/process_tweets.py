@@ -42,9 +42,18 @@ def parse_message(msg: str, prefix: str) -> Tuple[str, str]:
 
 
 def validate_signature(pubkey: str, signed_message: str, twitter_handle: str):
-    for msg in [twitter_handle, f"@{twitter_handle}"]:
-        if is_sig_valid(sig=signed_message, msg=msg, pub_key=pubkey):
-            return
+    # Check different cases:
+    # - start with @ or without
+    # - end with whitespace
+    # - handle upper and lowercase
+    for whitechar in ["", " ", "\n", "\t"]:
+        for handle in set(
+            [twitter_handle, twitter_handle.upper(), twitter_handle.lower()]
+        ):
+            for prefix in ["", "@"]:
+                msg = f"{prefix}{handle}{whitechar}"
+                if is_sig_valid(sig=signed_message, msg=msg, pub_key=pubkey):
+                    return
     raise TweetInvalidSignatureError("Invalid signature")
 
 
