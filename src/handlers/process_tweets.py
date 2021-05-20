@@ -141,7 +141,8 @@ def handle_process_tweets(
         onelog.info(since_tweet_id=since_tweet_id)
         tweets = list(
             twclient.get_tweets(
-                twitter_search_text, since_tweet_id,
+                twitter_search_text,
+                since_tweet_id,
             )
         )
         onelog.info(total_count=len(tweets))

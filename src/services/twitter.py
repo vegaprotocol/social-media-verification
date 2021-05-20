@@ -25,12 +25,12 @@ class Tweet(object):
             f"user_screen_name={self.user_screen_name!r}, "
             f"full_text={self.full_text!r})"
         )
-    
+
     def __eq__(self, other):
         if isinstance(other, Tweet):
             return self.__dict__ == other.__dict__
         return False
-    
+
     def __hash__(self):
         return hash(self.tweet_id)
 
@@ -165,7 +165,6 @@ class TwitterClient(object):
 
             query["max_id"] = tweet_data["id"] - 1
 
-
     def get_tweets(
         self,
         search_text: str,
@@ -182,10 +181,9 @@ class TwitterClient(object):
         Returns:
             Ordered list of Tweets
         """
-        result = (
-            list(self.search(search_text, since_tweet_id=since_tweet_id)) + 
-            list(self.mentions(since_tweet_id=since_tweet_id))
-        )
+        result = list(
+            self.search(search_text, since_tweet_id=since_tweet_id)
+        ) + list(self.mentions(since_tweet_id=since_tweet_id))
         # remove duplicates
         result = list(set(result))
         # order ascending

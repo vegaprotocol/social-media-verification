@@ -32,7 +32,8 @@ if __name__ == "__main__":
         try:
             parsed = "not parsable"
             pubkey, signed_message = parse_message(
-                tweet.full_text, TWITTER_SEARCH_TEXT,
+                tweet.full_text,
+                TWITTER_SEARCH_TEXT,
             )
             parsed = "invalid signature"
             validate_signature(
@@ -41,7 +42,10 @@ if __name__ == "__main__":
                 twitter_handle=tweet.user_screen_name,
             )
             parsed = "OK"
-        except:
+        except Exception:
             pass
         i += 1
-        print(f" ------ {i} [{parsed}]: {tweet}, url: https://twitter.com/{tweet.user_screen_name}/status/{tweet.tweet_id}")
+        print(
+            f" ------ {i} [{parsed}]: {tweet}, url: https:"
+            f"//twitter.com/{tweet.user_screen_name}/status/{tweet.tweet_id}"
+        )

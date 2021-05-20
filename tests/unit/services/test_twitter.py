@@ -98,7 +98,8 @@ def test_search():
 def test_mentions():
     twclient = mock.MagicMock()
     twclient.twapi.get_mentions_timeline.side_effect = [
-        [tweet_1], [],
+        [tweet_1],
+        [],
     ]
     since_id = 123
 
