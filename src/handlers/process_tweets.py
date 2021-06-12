@@ -30,15 +30,21 @@ def is_sig_valid(sig, msg, pub_key):
     return False
 
 
-def parse_message(msg: str, prefix: str) -> Tuple[str, str]:
-    m = re.match(
-        fr"^{prefix}\s+(?P<PUBKEY>[0-9a-fA-F]+)\s+(?P<SIGNED_MESSAGE>[^\s]+)",
-        msg,
-    )
-    if not m:
-        raise TweetInvalidFormatError("Wrong format")
+def parse_tweet_message(msg: str, twitter_handle: str) -> Tuple[str, str]:
+    if not re.search(fr"(^|\s){twitter_handle}(\s|$)", msg):
+        raise TweetInvalidFormatError("Missing twitter handle.")
 
-    return m.group("PUBKEY"), m.group("SIGNED_MESSAGE")
+    m = re.search(r"(^|\s)([0-9a-fA-F]{64,64})(\s|$)", msg)
+    if not m:
+        raise TweetInvalidFormatError("Missing pubkey.")
+    pubkey = m.group(2)
+
+    m = re.search(r"(^|\s)([^\s]{60,}==)(\s|$)", msg)
+    if not m:
+        raise TweetInvalidFormatError("Missing signature.")
+    sig = m.group(2)
+
+    return pubkey, sig
 
 
 def validate_signature(pubkey: str, signed_message: str, twitter_handle: str):
@@ -64,6 +70,7 @@ def process_tweet(
     twclient: TwitterClient,
     config: SMVConfig,
     tweet_prefix: str,
+    twitter_handle: str,  # starts with @ character
     onelog: OneLog = None,
 ):
     onelog.info(
@@ -71,6 +78,7 @@ def process_tweet(
         tweet_handle=tweet.user_screen_name,
         tweet_user_id=tweet.user_id,
         tweet_message=tweet.full_text,
+        twitter_handle=twitter_handle,
     )
 
     if storage.get_tweet_record(tweet.tweet_id) is not None:
@@ -84,8 +92,8 @@ def process_tweet(
             status="PROCESSING",
         )
         try:
-            pubkey, signed_message = parse_message(
-                tweet.full_text, tweet_prefix
+            pubkey, signed_message = parse_tweet_message(
+                tweet.full_text, twitter_handle
             )
             onelog.info(pubkey=pubkey, signed_message=signed_message)
             validate_signature(
@@ -142,9 +150,10 @@ def handle_process_tweets(
 ):
     # Fetch all tweets from Twitter API
     try:
-        twitter_search_text = (
-            f"{config.twitter_search_text} @{twclient.account_name}"
-        )
+        # twitter_search_text = (
+        #    f"{config.twitter_search_text} @{twclient.account_name}"
+        # )
+        twitter_search_text = f"@{twclient.account_name}"
         onelog.info(twitter_search_text=twitter_search_text)
         since_tweet_id = storage.get_last_tweet_id()
         onelog.info(since_tweet_id=since_tweet_id)
@@ -176,6 +185,7 @@ def handle_process_tweets(
                 twclient,
                 config,
                 tweet_prefix=twitter_search_text,
+                twitter_handle=f"@{twclient.account_name}",
             )
             processed_count += 1
         onelog.info(processed_count=processed_count)
