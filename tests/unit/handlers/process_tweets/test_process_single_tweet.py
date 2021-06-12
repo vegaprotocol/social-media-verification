@@ -8,7 +8,7 @@ twitter_account_name = "twitter_account"
 twitter_pubkey = (
     "01152723fa548599255ea0a17cbeb5d92c9659c8d797eb7c1213419218c6b94f"
 )
-twitter_invalid_signature = "ku39iMD7/SLTxfZUw7SAn5K3mypHGmp7hKpgh0yDIWGRR9Qlc1yqoUOaVbMbgjFU8nNots2BDFKK4f7INVALID=="
+twitter_invalid_signature = "ku39iMD7/SLTxfZUw7SAn5K3mypHGmp7hKpgh0yDIWGRR9Qlc1yqoUOaVbMbgjFU8nNots2BDFKK4f7INVALID=="  # noqa: E501
 twitter_signed_message = "ku39iMD7/SLTxfZUw7SAn5K3mypHGmp7hKpgh0yDIWGRR9Qlc1yqoUOaVbMbgjFU8nNots2BDFKK4f79HokbCA=="  # noqa: E501
 twitter_tweet_prefix = "I'm taking a ride with @hello_mixel"
 twitter_handle = "@hello_mixel"
@@ -35,7 +35,7 @@ tweet_invalid_signature = Tweet(
     user_id=321,
     user_screen_name=twitter_account_name,
     full_text=(
-        f"I'm taking a ride with @hello_mixel {twitter_pubkey} {twitter_invalid_signature} "
+        f"I'm taking a ride with @hello_mixel {twitter_pubkey} {twitter_invalid_signature} "  # noqa: E501
         "https://www.wired.co.uk/article/silicon-roundabout #oldstreettest"
     ),
 )
