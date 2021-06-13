@@ -10,6 +10,7 @@ from handlers.process_tweets import parse_tweet_message
     "twitter_handle",
     [
         "@twitter_account",
+        "@V4c",
     ],
 )
 @pytest.mark.parametrize(
@@ -33,6 +34,8 @@ from handlers.process_tweets import parse_tweet_message
         "I'm taking a ride on {twitter_handle}\n{pubkey} {msg_sign}\nhttps://test.url #something",  # noqa: E501
         "Join me!! I'm taking a ride on {twitter_handle} 🔥 {pubkey} {msg_sign}\nhttps://test.url",  # noqa: E501
         "Join me!! I'm taking a ride on {twitter_handle}\t{msg_sign} abc {pubkey} :hello!",  # noqa: E501
+        "Hi ✋, I am {pubkey}, and I can prove it {msg_sign}!! Let's go {twitter_handle}!",  # noqa: E501
+        "Hi ✋, I am -->{pubkey}<--, and I can prove it -->{msg_sign}<--!! Let's go -->{twitter_handle}<--!",  # noqa: E501
     ],
 )
 def test_parse_tweet_message(
