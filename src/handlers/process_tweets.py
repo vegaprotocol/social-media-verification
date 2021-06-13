@@ -31,15 +31,20 @@ def is_sig_valid(sig, msg, pub_key):
 
 
 def parse_tweet_message(msg: str, twitter_handle: str) -> Tuple[str, str]:
-    if not re.search(fr"(^|\s){twitter_handle}(\s|$)", msg):
+    # Twitter handle starts with @, so .* is ok
+    # Twitter handle allowed characters are alphanumeric and underscore
+    if not re.search(fr"(^|.*){twitter_handle}([^a-zA-Z0-9_]|$)", msg):
         raise TweetInvalidFormatError("Missing twitter handle.")
 
-    m = re.search(r"(^|\s)([0-9a-fA-F]{64,64})(\s|$)", msg)
+    # pubkey is a hex value
+    m = re.search(r"(^|[^0-9a-fA-F])([0-9a-fA-F]{64,64})([^0-9a-fA-F]|$)", msg)
     if not m:
         raise TweetInvalidFormatError("Missing pubkey.")
     pubkey = m.group(2)
 
-    m = re.search(r"(^|\s)([^\s]{60,}==)(\s|$)", msg)
+    # Signature is alphanumeric and forward-slash and plus characters.
+    # It ends with double equal sign.
+    m = re.search(r"(^|[^a-zA-Z0-9/+])([a-zA-Z0-9/+]{60,}==)(.*|$)", msg)
     if not m:
         raise TweetInvalidFormatError("Missing signature.")
     sig = m.group(2)
