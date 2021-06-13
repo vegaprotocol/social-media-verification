@@ -2,7 +2,7 @@
 import os
 
 from services.twitter import TwitterClient
-from handlers.process_tweets import parse_message, validate_signature
+from handlers.process_tweets import parse_tweet_message, validate_signature
 
 TWITTER_ACCOUNT_NAME = "[PUT TWITTER ACCOUNT NAME WITHOUT @]"
 TWITTER_CONSUMER_KEY = "[PUT TWITTER APP KEY/CONSUMER KEY]"
@@ -27,13 +27,14 @@ twclient = TwitterClient(
 )
 
 if __name__ == "__main__":
+    twitter_handle = f"@{TWITTER_ACCOUNT_NAME}"
     i = 0
-    for tweet in twclient.get_tweets(TWITTER_SEARCH_TEXT):
+    for tweet in twclient.get_tweets(twitter_handle):
         try:
             parsed = "not parsable"
-            pubkey, signed_message = parse_message(
+            pubkey, signed_message = parse_tweet_message(
                 tweet.full_text,
-                TWITTER_SEARCH_TEXT,
+                twitter_handle=twitter_handle,
             )
             parsed = "invalid signature"
             validate_signature(
