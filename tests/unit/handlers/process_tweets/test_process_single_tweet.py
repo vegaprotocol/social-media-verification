@@ -8,8 +8,10 @@ twitter_account_name = "twitter_account"
 twitter_pubkey = (
     "01152723fa548599255ea0a17cbeb5d92c9659c8d797eb7c1213419218c6b94f"
 )
+twitter_invalid_signature = "ku39iMD7/SLTxfZUw7SAn5K3mypHGmp7hKpgh0yDIWGRR9Qlc1yqoUOaVbMbgjFU8nNots2BDFKK4f7INVALID=="  # noqa: E501
 twitter_signed_message = "ku39iMD7/SLTxfZUw7SAn5K3mypHGmp7hKpgh0yDIWGRR9Qlc1yqoUOaVbMbgjFU8nNots2BDFKK4f79HokbCA=="  # noqa: E501
 twitter_tweet_prefix = "I'm taking a ride with @hello_mixel"
+twitter_handle = "@hello_mixel"
 
 tweet_ok = Tweet(
     tweet_id=123,
@@ -33,7 +35,7 @@ tweet_invalid_signature = Tweet(
     user_id=321,
     user_screen_name=twitter_account_name,
     full_text=(
-        f"I'm taking a ride with @hello_mixel {twitter_pubkey} ABC "
+        f"I'm taking a ride with @hello_mixel {twitter_pubkey} {twitter_invalid_signature} "  # noqa: E501
         "https://www.wired.co.uk/article/silicon-roundabout #oldstreettest"
     ),
 )
@@ -59,6 +61,7 @@ def test_process_tweet(capsys):
         twclient=twclient,
         config=smv_config,
         tweet_prefix=twitter_tweet_prefix,
+        twitter_handle=twitter_handle,
     )
 
     # validate log output
@@ -114,6 +117,7 @@ def test_process_tweet_already_processed(capsys):
         twclient=twclient,
         config=smv_config,
         tweet_prefix=twitter_tweet_prefix,
+        twitter_handle=twitter_handle,
     )
 
     # validate log output
@@ -146,6 +150,7 @@ def test_process_tweet_invalid_format(capsys):
         twclient=twclient,
         config=smv_config,
         tweet_prefix=twitter_tweet_prefix,
+        twitter_handle=twitter_handle,
     )
 
     # validate log output
@@ -195,6 +200,7 @@ def test_process_tweet_invalid_signature(capsys):
         twclient=twclient,
         config=smv_config,
         tweet_prefix=twitter_tweet_prefix,
+        twitter_handle=twitter_handle,
     )
 
     # validate log output
@@ -209,7 +215,7 @@ def test_process_tweet_invalid_signature(capsys):
     assert f'"tweet_handle":"{twitter_account_name}"' in log_line
     assert f'"tweet_message":"{tweet_invalid_signature.full_text}"' in log_line
     assert f'"pubkey":"{twitter_pubkey}"' in log_line
-    assert '"signed_message":"ABC"' in log_line
+    assert f'"signed_message":"{twitter_invalid_signature}"' in log_line
     assert '"error":"Invalid Signature"' in log_line
     assert '"status":"FAILED"' in log_line
 
