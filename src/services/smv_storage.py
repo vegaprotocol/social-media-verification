@@ -42,7 +42,9 @@ class SMVStorage(object):
                     item["created"].replace(tzinfo=timezone.utc).timestamp()
                 ),
             }
-            for item in self.col_identities.find(cursor_type=CursorType.EXHAUST)
+            for item in self.col_identities.find(
+                cursor_type=CursorType.EXHAUST
+            )
         ]
 
     def upsert_verified_party(
