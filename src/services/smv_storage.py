@@ -2,6 +2,7 @@ from typing import Any, Optional, Dict
 import pymongo
 from pymongo import database
 from pymongo.collection import Collection
+from pymongo.cursor import CursorType
 from datetime import datetime, timezone
 from .mongodb import get_mongodb_connection
 
@@ -41,7 +42,9 @@ class SMVStorage(object):
                     item["created"].replace(tzinfo=timezone.utc).timestamp()
                 ),
             }
-            for item in self.col_identities.find()
+            for item in self.col_identities.find(
+                cursor_type=CursorType.EXHAUST
+            )
         ]
 
     def upsert_verified_party(
