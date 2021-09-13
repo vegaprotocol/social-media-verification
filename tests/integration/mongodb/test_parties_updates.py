@@ -1,8 +1,6 @@
-# noqa: E501
 import pytest
-from freezegun import freeze_time
-from datetime import datetime, timezone, timedelta
-from tools import setup_parties_collection, random_party
+from datetime import datetime, timezone
+from tools import setup_parties_collection
 from services.smv_storage import SMVStorage
 
 START_TIME = datetime(2021, 9, 13, 20, 12, 55, 1000, timezone.utc)
@@ -12,9 +10,7 @@ PUB_KEY = "cc3a5912aba19291b070457f54652bb49b1b3a86ef0537e5224dbdc4e83b2102"
 TWITTER_ID = 18237215432962
 TWITTER_HANDLE = "my_twt_handle"
 
-NEW_PUB_KEY = (
-    "7f27932200b4d6d3af14d3896031ffc3b83c2da728b62aa9124905b754cc9c5f"
-)
+NEW_PUB_KEY = "7f27932200b4d6d3af14d3896031ffc3b83c2da728b62aa9124905b754cc9c5f"  # noqa: E501
 NEW_TWITTER_ID = 54830984309458
 NEW_TWITTER_HANDLE = "my_other_twt_handle"
 
@@ -32,13 +28,14 @@ NEW_TWITTER_HANDLE = "my_other_twt_handle"
         # User changes their Twitter Handle
         ("Update Twitter Handle", PUB_KEY, TWITTER_ID, NEW_TWITTER_HANDLE),
         # User changes their Pub Key and Twitter Handle - both at once
-        ("Update Pub Key and Twitter Handle", NEW_PUB_KEY, TWITTER_ID, NEW_TWITTER_HANDLE),
+        ("Update Pub Key and Twitter Handle", NEW_PUB_KEY, TWITTER_ID, NEW_TWITTER_HANDLE),  # noqa: E501
         # User transfers Pub Key to another Twitter account
-        ("Update Twitter ID and Twitter Handle", PUB_KEY, NEW_TWITTER_ID, NEW_TWITTER_HANDLE),
-        # A new participant sign ups with a Twitter Handle, that belonged (in past) to
-        # a different participant
-        # We don't want to update data for this use-case, but to create a new participant and update old one
-        # ("Update Pub Key and Twitter ID", NEW_PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),
+        ("Update Twitter ID and Twitter Handle", PUB_KEY, NEW_TWITTER_ID, NEW_TWITTER_HANDLE),  # noqa: E501
+        # A new participant sign ups with a Twitter Handle, that
+        #   belonged (in past) to a different participant
+        # We don't want to update data for this use-case, but to create
+        #   a new participant and update old one
+        # ("Update Pub Key and Twitter ID", NEW_PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),  # noqa: E501
     ],
 )
 # fmt: on
@@ -92,10 +89,11 @@ def test_allowed_user_info_updates(
     "description, new_pub_key,new_twitter_id,new_twitter_handle",
     [
         ("New user sign ups", NEW_PUB_KEY, NEW_TWITTER_ID, NEW_TWITTER_HANDLE),
-        # A new participant sign ups with a Twitter Handle, that belonged (in past) to
-        # a different participant
-        # We don't want to update data for this use-case, but to create a new participant and update old one
-        ("Update Pub Key and Twitter ID", NEW_PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),
+        # A new participant sign ups with a Twitter Handle, that
+        #   belonged (in past) to a different participant
+        # We don't want to update data for this use-case, but to create
+        #   a new participant and update old one
+        ("Update Pub Key and Twitter ID", NEW_PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),  # noqa: E501
     ],
 )
 # fmt: on

@@ -1,7 +1,7 @@
 import pytest
 from freezegun import freeze_time
 from datetime import datetime, timezone, timedelta
-from tools import setup_parties_collection, random_party
+from tools import setup_parties_collection
 from services.smv_storage import SMVStorage
 
 START_TIME = datetime(2021, 9, 13, 10, 34, 20, 1000, timezone.utc)
