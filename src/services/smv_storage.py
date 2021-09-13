@@ -56,16 +56,18 @@ class SMVStorage(object):
         now = datetime.utcnow().replace(tzinfo=timezone.utc)
         self.col_identities.update_one(
             {
-                "$nor": [{
-                    "twitter_handle": screen_name,
-                    "pub_key": {"$ne": pub_key},
-                    "twitter_user_id": {"$ne": user_id},
-                }],
+                "$nor": [
+                    {
+                        "twitter_handle": screen_name,
+                        "pub_key": {"$ne": pub_key},
+                        "twitter_user_id": {"$ne": user_id},
+                    }
+                ],
                 "$or": [
                     {"pub_key": pub_key},
                     {"twitter_user_id": user_id},
                     {"twitter_handle": screen_name},
-                ]
+                ],
             },
             {
                 "$set": {
