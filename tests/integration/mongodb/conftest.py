@@ -10,13 +10,13 @@ def smv_storage() -> SMVStorage:
     MONGO_DB_HOSTNAME = os.getenv("MONGO_DB_HOSTNAME")
     MONGO_DB_NAME = os.getenv("MONGO_DB_NAME")
     if (
-        not MONGO_DB_USER or
-        not MONGO_DB_PASS or
-        not MONGO_DB_HOSTNAME or
-        not MONGO_DB_NAME
+        not MONGO_DB_USER
+        or not MONGO_DB_PASS
+        or not MONGO_DB_HOSTNAME
+        or not MONGO_DB_NAME
     ):
         return None
-    
+
     assert "local" in MONGO_DB_NAME
 
     os.environ[
@@ -46,5 +46,6 @@ def process_skipif_no_mongodb(request, smv_storage):
 
 def pytest_configure(config):
     config.addinivalue_line(
-        "markers", "skipif_no_mongodb: skip test if there is no mongodb available",
+        "markers",
+        "skipif_no_mongodb: skip test if there is no mongodb available",
     )

@@ -20,4 +20,6 @@ echo "=== Start docker-compose ==="
 docker-compose up -d
 
 echo "=== Run tests ==="
-docker-compose exec --workdir "/workspace" workspace "${CMD}"
+if [ ! -t 1 ] ; then NO_TTY="--no-TTY"; fi
+
+docker-compose exec ${NO_TTY} --workdir "/workspace" workspace "${CMD}"

@@ -1,6 +1,6 @@
 ---
 
-name: Python tests
+name: Integration tests
 
 "on":
   push:
@@ -15,7 +15,7 @@ name: Python tests
 jobs:
 
   test:
-    name: Test with Python ${{ matrix.python-version }}
+    name: Integration with Python ${{ matrix.python-version }}
     runs-on: ubuntu-latest
     strategy:
       matrix:
@@ -29,5 +29,5 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
-      - name: Unit tests
+      - name: Integration tests
         run: make test-in-docker-compose

@@ -78,7 +78,9 @@ def test_dates_after_update(smv_storage: SMVStorage):
     # note:
     # - each call to get date-time will tick global time by 15seconds
     # - tz_offset - make sure it works with a random timezone
-    with freeze_time(START_TIME + timedelta(seconds=11), tz_offset=-10, auto_tick_seconds=15):
+    with freeze_time(
+        START_TIME + timedelta(seconds=11), tz_offset=-10, auto_tick_seconds=15
+    ):
         smv_storage.upsert_verified_party(
             pub_key=PUB_KEY,
             user_id=TWITTER_ID,

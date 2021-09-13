@@ -1,11 +1,12 @@
 from typing import List
-from datetime import datetime, time, timezone, timedelta
+from datetime import datetime, timezone, timedelta
 import random
 import string
 
 from services.smv_storage import SMVStorage
 
 PARTIES_COLLECTION_NAME = "identities"
+
 
 def _setup_collection(
     collection_name: str,
@@ -24,20 +25,28 @@ def setup_parties_collection(smv_storage: SMVStorage, parties: List = None):
 
 
 def random_vega_address() -> str:
-    return f'{random.SystemRandom().randrange(16**64):030x}'
+    return f"{random.SystemRandom().randrange(16**64):030x}"
+
 
 def random_string() -> str:
-    return ''.join(random.SystemRandom().choices(
-        string.ascii_letters + string.digits,
-        k=random.SystemRandom().randrange(5, 20),
-    ))
+    return "".join(
+        random.SystemRandom().choices(
+            string.ascii_letters + string.digits,
+            k=random.SystemRandom().randrange(5, 20),
+        )
+    )
+
 
 NOW = datetime.utcnow().replace(tzinfo=timezone.utc)
 OLDEST = NOW - timedelta(days=180)
 
+
 def random_date(start: datetime = OLDEST, end: datetime = NOW) -> datetime:
     delta_seconds = int((end - start).total_seconds())
-    return start + timedelta(seconds=random.SystemRandom().randrange(delta_seconds))
+    return start + timedelta(
+        seconds=random.SystemRandom().randrange(delta_seconds)
+    )
+
 
 def random_party(
     pub_key: str = None,
@@ -55,7 +64,9 @@ def random_party(
     if not twitter_handle:
         twitter_handle = random_string()
     if not twitter_user_id:
-        twitter_user_id = random.SystemRandom().randint(10 ** 5, 9223372036854775807)
+        twitter_user_id = random.SystemRandom().randint(
+            10 ** 5, 9223372036854775807
+        )
 
     return {
         "pub_key": pub_key,

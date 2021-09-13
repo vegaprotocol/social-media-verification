@@ -1,3 +1,4 @@
+# noqa: E501
 import pytest
 from freezegun import freeze_time
 from datetime import datetime, timezone, timedelta
@@ -11,32 +12,36 @@ PUB_KEY = "cc3a5912aba19291b070457f54652bb49b1b3a86ef0537e5224dbdc4e83b2102"
 TWITTER_ID = 18237215432962
 TWITTER_HANDLE = "my_twt_handle"
 
-NEW_PUB_KEY = "7f27932200b4d6d3af14d3896031ffc3b83c2da728b62aa9124905b754cc9c5f"
+NEW_PUB_KEY = (
+    "7f27932200b4d6d3af14d3896031ffc3b83c2da728b62aa9124905b754cc9c5f"
+)
 NEW_TWITTER_ID = 54830984309458
 NEW_TWITTER_HANDLE = "my_other_twt_handle"
 
 
-
 @pytest.mark.skipif_no_mongodb
-@pytest.mark.parametrize("description, new_pub_key,new_twitter_id,new_twitter_handle", [
-    ("Sing up with same data", PUB_KEY, TWITTER_ID, TWITTER_HANDLE),
-    # User changes theirs Pub Key
-    ("Update Pub Key", NEW_PUB_KEY, TWITTER_ID, TWITTER_HANDLE),
-    # User transfers Pub Key to another Twitter account
-    ("Update Twitter ID", PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),
-    # User changes their Twitter Handle
-    ("Update Twitter Handle", PUB_KEY, TWITTER_ID, NEW_TWITTER_HANDLE),
-
-    # User changes their Pub Key and Twitter Handle - both at once
-    ("Update Pub Key and Twitter Handle", NEW_PUB_KEY, TWITTER_ID, NEW_TWITTER_HANDLE),
-    # User transfers Pub Key to another Twitter account
-    ("Update Twitter ID and Twitter Handle", PUB_KEY, NEW_TWITTER_ID, NEW_TWITTER_HANDLE),
-
-    # A new participant sign ups with a Twitter Handle, that belonged (in past) to
-    # a different participant
-    # We don't want to update data for this use-case, but to create a new participant and update old one
-    # ("Update Pub Key and Twitter ID", NEW_PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),
-])
+# fmt: off
+@pytest.mark.parametrize(
+    "description, new_pub_key,new_twitter_id,new_twitter_handle",
+    [
+        ("Sing up with same data", PUB_KEY, TWITTER_ID, TWITTER_HANDLE),
+        # User changes theirs Pub Key
+        ("Update Pub Key", NEW_PUB_KEY, TWITTER_ID, TWITTER_HANDLE),
+        # User transfers Pub Key to another Twitter account
+        ("Update Twitter ID", PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),
+        # User changes their Twitter Handle
+        ("Update Twitter Handle", PUB_KEY, TWITTER_ID, NEW_TWITTER_HANDLE),
+        # User changes their Pub Key and Twitter Handle - both at once
+        ("Update Pub Key and Twitter Handle", NEW_PUB_KEY, TWITTER_ID, NEW_TWITTER_HANDLE),
+        # User transfers Pub Key to another Twitter account
+        ("Update Twitter ID and Twitter Handle", PUB_KEY, NEW_TWITTER_ID, NEW_TWITTER_HANDLE),
+        # A new participant sign ups with a Twitter Handle, that belonged (in past) to
+        # a different participant
+        # We don't want to update data for this use-case, but to create a new participant and update old one
+        # ("Update Pub Key and Twitter ID", NEW_PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),
+    ],
+)
+# fmt: on
 def test_allowed_user_info_updates(
     smv_storage: SMVStorage,
     new_pub_key: str,
@@ -82,14 +87,18 @@ def test_allowed_user_info_updates(
 
 
 @pytest.mark.skipif_no_mongodb
-@pytest.mark.parametrize("description, new_pub_key,new_twitter_id,new_twitter_handle", [
-    ("New user sign ups", NEW_PUB_KEY, NEW_TWITTER_ID, NEW_TWITTER_HANDLE),
-
-    # A new participant sign ups with a Twitter Handle, that belonged (in past) to
-    # a different participant
-    # We don't want to update data for this use-case, but to create a new participant and update old one
-    ("Update Pub Key and Twitter ID", NEW_PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),
-])
+# fmt: off
+@pytest.mark.parametrize(
+    "description, new_pub_key,new_twitter_id,new_twitter_handle",
+    [
+        ("New user sign ups", NEW_PUB_KEY, NEW_TWITTER_ID, NEW_TWITTER_HANDLE),
+        # A new participant sign ups with a Twitter Handle, that belonged (in past) to
+        # a different participant
+        # We don't want to update data for this use-case, but to create a new participant and update old one
+        ("Update Pub Key and Twitter ID", NEW_PUB_KEY, NEW_TWITTER_ID, TWITTER_HANDLE),
+    ],
+)
+# fmt: on
 def test_new_user_sign_ups(
     smv_storage: SMVStorage,
     new_pub_key: str,
