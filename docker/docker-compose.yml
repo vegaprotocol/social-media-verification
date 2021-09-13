@@ -1,0 +1,33 @@
+version: '3.7'
+
+services:
+  workspace:
+    build: 
+      context: ..
+      dockerfile: ./docker/workspace.dockerfile
+    depends_on:
+      - mongo
+
+    init: true
+    volumes:
+      # Update this to wherever you want VS Code to mount the folder of your project
+      - ..:/workspace:cached
+
+    environment:
+      PYTHONPATH: /workspace/src
+      MONGO_DB_USER: smv-local-user
+      MONGO_DB_PASS: smv-local-password
+      MONGO_DB_HOSTNAME: mongo
+      MONGO_DB_NAME: smv-local
+
+    command: sleep infinity
+
+  mongo:
+    image: mongo:4.4
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: rootPassword
+      MONGO_INITDB_DATABASE: smv-local
+    volumes:
+      - ./mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js:ro

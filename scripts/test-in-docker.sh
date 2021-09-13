@@ -8,7 +8,7 @@ cd "${WORK_DIR}"
 CMD="${1:-./scripts/test.sh}"
 
 # build docker image
-docker build --file ./scripts/test.dockerfile --tag "smv-test" .
+docker build --file ./docker/workspace.dockerfile --tag "smv-test" .
 
 # run command in docker container
 docker run -it --rm \

@@ -40,8 +40,9 @@ def get_mongodb_connection(*, gcp_secret_name: str) -> database.Database:
     password = mongo_secret["DB_PASS"]
     hostname = mongo_secret["DB_HOSTNAME"]
     db_name = mongo_secret["DB_NAME"]
+    scheme = mongo_secret.get("SCHEME", "mongodb+srv")
     db_url = (
-        f"mongodb+srv://{user}:{password}@{hostname}/{db_name}?"
+        f"{scheme}://{user}:{password}@{hostname}/{db_name}?"
         "retryWrites=true&w=majority"
     )
 
