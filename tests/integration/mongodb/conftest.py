@@ -31,7 +31,7 @@ def smv_storage() -> SMVStorage:
 
     try:
         return SMVStorage.get_storage(gcp_secret_name="MONGO_SECRET")
-    except:
+    except Exception:
         pass
     return None
 
@@ -41,7 +41,7 @@ def process_skipif_no_mongodb(request, smv_storage):
     if smv_storage is None:
         marker = request.node.get_closest_marker("skipif_no_mongodb")
         if marker is not None:
-            pytest.skip(f"No mongodb connection available.")
+            pytest.skip("No mongodb connection available.")
 
 
 def pytest_configure(config):
