@@ -143,3 +143,51 @@ def test_new_user_sign_ups(
     assert new_party["twitter_handle"] == new_twitter_handle
     assert new_party["party_id"] == new_pub_key
     assert new_party["twitter_user_id"] == new_twitter_id
+
+
+@pytest.mark.skipif_no_mongodb
+def test_signup_with_twitter_handle_matching_two_participants(smv_storage: SMVStorage):
+    #
+    # Prepare
+    #
+    setup_parties_collection(
+        smv_storage,
+        [],
+    )
+
+    #
+    # Create two entries
+    #
+    smv_storage.upsert_verified_party(
+        pub_key=PUB_KEY,
+        user_id=TWITTER_ID,
+        screen_name=TWITTER_HANDLE,
+    )
+    smv_storage.upsert_verified_party(
+        pub_key=NEW_PUB_KEY,
+        user_id=NEW_TWITTER_ID,
+        screen_name=NEW_TWITTER_HANDLE,
+    )
+
+    #
+    # New Sign-up
+    #
+    smv_storage.upsert_verified_party(
+        pub_key=PUB_KEY,
+        user_id=TWITTER_ID,
+        screen_name=NEW_TWITTER_HANDLE,
+    )
+
+    #
+    # Validate
+    #
+    parties = smv_storage.get_parties()
+    assert len(parties) == 2
+    a_party = parties[0]
+    b_party = parties[1]
+    assert a_party["party_id"] == PUB_KEY
+    assert a_party["twitter_user_id"] == TWITTER_ID
+    assert a_party["twitter_handle"] == NEW_TWITTER_HANDLE
+    assert b_party["party_id"] == NEW_PUB_KEY
+    assert b_party["twitter_user_id"] == NEW_TWITTER_ID
+    assert b_party["twitter_handle"] == NEW_TWITTER_HANDLE

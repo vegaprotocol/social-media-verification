@@ -6,6 +6,8 @@ from pymongo.cursor import CursorType
 from datetime import datetime, timezone
 from .mongodb import get_mongodb_connection
 
+from common import BlocklistPartyError
+
 
 class SMVStorage(object):
     """Access SMV Storage (currently backed with MongoDB)"""
@@ -45,6 +47,7 @@ class SMVStorage(object):
             for item in self.col_identities.find(
                 cursor_type=CursorType.EXHAUST
             )
+            if item.get("blocked", None) is None
         ]
 
     def upsert_verified_party(
@@ -54,6 +57,52 @@ class SMVStorage(object):
         screen_name: str,
     ):
         now = datetime.utcnow().replace(tzinfo=timezone.utc)
+
+        # Check if it is not a transfer from one participant to the other
+        existing_parties_count = self.col_identities.count_documents(
+            {
+                "$or": [
+                    {"pub_key": pub_key},
+                    {"twitter_user_id": user_id},
+                ],
+            }
+        )
+        if existing_parties_count > 1:
+            err_msg = f"Sing up matched multiple parties: twitter_id: '{user_id}', pub_key: '{pub_key}'"
+            self.col_identities.update_many(
+                {
+                    "$or": [
+                        {"pub_key": pub_key},
+                        {"twitter_user_id": user_id},
+                    ],
+                },
+                {
+                    "$set": {
+                        "blocked": err_msg,
+                        "last_modified": now,
+                    },
+                }
+            )
+            raise BlocklistPartyError(err_msg)
+
+        # Check if participant is not blocked
+        blocked_party = self.col_identities.find_one(
+            {
+                "$or": [
+                    {"pub_key": pub_key},
+                    {"twitter_user_id": user_id},
+                ],
+                "blocked": {"$ne": None},
+            }
+        )
+        if blocked_party:
+            raise BlocklistPartyError(
+                f"Participant (twitter_id: {blocked_party['twitter_user_id']}) is blocked with"
+                f" reason: '{blocked_party['blocked']}'. Ignoring singup:"
+                f" twitter_id: '{user_id}', pub_key: '{pub_key}'"
+            )
+
+
         self.col_identities.update_one(
             {
                 "$nor": [
@@ -75,6 +124,7 @@ class SMVStorage(object):
                     "twitter_user_id": user_id,
                     "twitter_handle": screen_name,
                     "last_modified": now,
+                    "blocked": None,
                 },
                 # `created` field is modified on document INSERT only.
                 # It is not modified on document UPDATE.
@@ -97,6 +147,7 @@ class SMVStorage(object):
         text: str = None,
         reply: str = None,
         status: str = None,
+        description: str = None,
     ):
         data = {
             "last_modified": datetime.utcnow().replace(tzinfo=timezone.utc),
@@ -111,6 +162,8 @@ class SMVStorage(object):
             data["reply"] = reply
         if status is not None:
             data["status"] = status
+        if description is not None:
+            data["description"] = description
         self.col_tweets.update_one(
             {"tweet_id": tweet_id},
             {"$set": data},
