@@ -68,7 +68,8 @@ class SMVStorage(object):
             }
         )
         if existing_parties_count > 1:
-            err_msg = f"Sing up matched multiple parties: twitter_id: '{user_id}', pub_key: '{pub_key}'"
+            err_msg = "Sing up matched multiple parties:"
+            err_msg += f" twitter_id: '{user_id}', pub_key: '{pub_key}'"
             self.col_identities.update_many(
                 {
                     "$or": [
@@ -81,7 +82,7 @@ class SMVStorage(object):
                         "blocked": err_msg,
                         "last_modified": now,
                     },
-                }
+                },
             )
             raise BlocklistPartyError(err_msg)
 
@@ -97,11 +98,11 @@ class SMVStorage(object):
         )
         if blocked_party:
             raise BlocklistPartyError(
-                f"Participant (twitter_id: {blocked_party['twitter_user_id']}) is blocked with"
+                f"Participant (twitter_id: {blocked_party['twitter_user_id']})"
+                f" is blocked with"
                 f" reason: '{blocked_party['blocked']}'. Ignoring singup:"
                 f" twitter_id: '{user_id}', pub_key: '{pub_key}'"
             )
-
 
         self.col_identities.update_one(
             {

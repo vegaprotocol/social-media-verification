@@ -25,13 +25,13 @@ C_TWITTER_HANDLE = "twitter_handle_c"
 @pytest.mark.parametrize(
     "description, pub_key,twitter_id,twitter_handle",
     [
-        ("Transfer address from A to B v1", A_PUB_KEY, B_TWITTER_ID, B_TWITTER_HANDLE),
-        ("Transfer address from A to B v2", A_PUB_KEY, B_TWITTER_ID, A_TWITTER_HANDLE),
-        ("Transfer address from A to B v3 - ignore twitter handle match with another party",
+        ("Transfer address from A to B v1", A_PUB_KEY, B_TWITTER_ID, B_TWITTER_HANDLE),  # noqa: E501
+        ("Transfer address from A to B v2", A_PUB_KEY, B_TWITTER_ID, A_TWITTER_HANDLE),  # noqa: E501
+        ("Transfer address from A to B v3 - ignore twitter handle match with another party",  # noqa: E501
             A_PUB_KEY, B_TWITTER_ID, C_TWITTER_HANDLE),
-        ("Transfer address from B to A v1", B_PUB_KEY, A_TWITTER_ID, A_TWITTER_HANDLE),
-        ("Transfer address from B to A v2", B_PUB_KEY, A_TWITTER_ID, B_TWITTER_HANDLE),
-        ("Transfer address from B to A v3 - ignore twitter handle match with another party",
+        ("Transfer address from B to A v1", B_PUB_KEY, A_TWITTER_ID, A_TWITTER_HANDLE),  # noqa: E501
+        ("Transfer address from B to A v2", B_PUB_KEY, A_TWITTER_ID, B_TWITTER_HANDLE),  # noqa: E501
+        ("Transfer address from B to A v3 - ignore twitter handle match with another party",  # noqa: E501
             B_PUB_KEY, A_TWITTER_ID, C_TWITTER_HANDLE),
     ],
 )
@@ -84,7 +84,9 @@ def test_block_participants(
     # Validate
     #
     parties = smv_storage.get_parties()
-    assert len(parties) == 1, "Parties A and B should be blocked and not returned by get_parties"
+    assert (
+        len(parties) == 1
+    ), "Parties A and B should be blocked and not returned by get_parties"
     party = parties[0]
     assert party["twitter_handle"] == C_TWITTER_HANDLE
     assert party["party_id"] == C_PUB_KEY

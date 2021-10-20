@@ -146,7 +146,9 @@ def test_new_user_sign_ups(
 
 
 @pytest.mark.skipif_no_mongodb
-def test_signup_with_twitter_handle_matching_two_participants(smv_storage: SMVStorage):
+def test_signup_with_twitter_handle_matching_two_participants(
+    smv_storage: SMVStorage,
+):
     #
     # Prepare
     #
