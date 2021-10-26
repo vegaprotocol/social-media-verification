@@ -58,7 +58,10 @@ class SMVStorage(object):
     ):
         now = datetime.utcnow().replace(tzinfo=timezone.utc)
 
-        # Check if it is not a transfer from one participant to the other
+        # Check if pub_key and user_id belong to two different participants
+        # already registered.
+        # This is to detect if pub_key is moved from one party to another
+        # if so, then we block both parties
         existing_parties_count = self.col_identities.count_documents(
             {
                 "$or": [

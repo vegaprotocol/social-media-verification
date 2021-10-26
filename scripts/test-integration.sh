@@ -1,5 +1,4 @@
 #!/bin/bash
-echo 123
 
 # Go to workspace root directory
 WORK_DIR=$(cd -P -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd -P)
