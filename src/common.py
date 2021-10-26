@@ -29,3 +29,7 @@ class TweetInvalidFormatError(SMVError):
 
 class TweetInvalidSignatureError(SMVError):
     pass
+
+
+class BlocklistPartyError(SMVError):
+    pass
