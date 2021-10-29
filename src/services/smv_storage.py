@@ -237,4 +237,8 @@ class SMVStorage(object):
             )
         ]
         if tweet_ids:
+            self.remove_todo_tweets(tweet_ids)
+
+    def remove_todo_tweets(self, tweet_ids: List[int]):
+        if tweet_ids:
             self.col_todo_tweets.delete_many({"tweet_id": {"$in": tweet_ids}})

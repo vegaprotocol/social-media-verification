@@ -193,8 +193,11 @@ def handle_process_tweets(
         )
 
     storage.cleanup_todo_tweets()
-    for tweet_id in storage.get_todo_tweets():
-        tweets.append(twclient.get_by_id(tweet_id))
+    todo_tweets = storage.get_todo_tweets()
+    for tweet_id in todo_tweets:
+        new_tweet = twclient.get_by_id(tweet_id)
+        if new_tweet:
+            tweets.append(new_tweet)
 
     # Process tweets one by one from oldest to newest
     try:
@@ -217,5 +220,7 @@ def handle_process_tweets(
         traceback.print_exc()
         print(err)
         return flask.jsonify({"status": "failed", "error": str(err)}), 500
+
+    storage.remove_todo_tweets(todo_tweets)
 
     return flask.jsonify({"status": "success"})
