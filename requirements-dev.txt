@@ -4,4 +4,5 @@ pytest
 pytest-cov
 black
 flake8
+freezegun
 watchdog[watchmedo]

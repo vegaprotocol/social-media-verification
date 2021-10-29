@@ -1,26 +1,30 @@
+// For format details, see https://aka.ms/devcontainer.json. For config options, see the README at:
+// https://github.com/microsoft/vscode-dev-containers/tree/v0.191.1/containers/docker-from-docker-compose
 {
-	"name": "SMV remote development",
-	"build": {
-		"dockerfile": "../scripts/test.dockerfile",
-		"context": ".."
+	"name": "SMV",
+	"dockerComposeFile": "../docker/docker-compose.yml",
+	"service": "workspace",
+	"workspaceFolder": "/workspace",
+
+	// Use this environment variable if you need to bind mount your local source code into a new container.
+	"remoteEnv": {
+		"LOCAL_WORKSPACE_FOLDER": "${localWorkspaceFolder}"
 	},
-
-    "containerEnv": {
-        "PYTHONPATH": "${containerWorkspaceFolder}/src"
-    },
-
-	"settings": { 
-		"terminal.integrated.shell.linux": "/bin/bash",
+	
+	// Set *default* container specific settings.json values on container create.
+	"settings": {
+		"terminal.integrated.defaultProfile.linux": "/bin/bash",
 		"python.pythonPath": "/usr/local/bin/python",
 		"python.linting.enabled": true,
 		"python.linting.pylintEnabled": true,
 		"python.formatting.blackPath": "/usr/local/bin/black",
 		"python.linting.flake8Path": "/usr/local/bin/flake8",
 		"python.linting.pylintPath": "/usr/local/bin/pylint"
-	},
+    },
 
 	// Add the IDs of extensions you want installed when the container is created.
 	"extensions": [
+		"ms-azuretools.vscode-docker",
 		"ms-python.python",
         "ms-python.vscode-pylance"
 	]
@@ -29,5 +33,8 @@
 	// "forwardPorts": [],
 
 	// Use 'postCreateCommand' to run commands after the container is created.
-	// "postCreateCommand": "pip3 install --user -r requirements.txt",
+	// "postCreateCommand": "docker --version",
+
+	// Comment out connect as root instead. More info: https://aka.ms/vscode-remote/containers/non-root.
+	// "remoteUser": "vscode"
 }

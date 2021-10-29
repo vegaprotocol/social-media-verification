@@ -7,18 +7,18 @@ cd "${WORK_DIR}"
 # disable creation of python bytecode files
 export PYTHONDONTWRITEBYTECODE=1
 
-# command to run tests
-cmd="${WORK_DIR}/scripts/test.sh"
+# Get first argument from command line; use test.sh if not set
+CMD="${1:-${WORK_DIR}/scripts/test.sh}"
 
 # first/head execution
 clear
-${cmd}
+${CMD}
 
 # wait for file changes and execute command
 watchmedo shell-command \
     --patterns="*.py" \
     --recursive \
     --ignore-directories \
-    --command="clear && ${cmd}" \
+    --command="clear && ${CMD}" \
     --drop \
     .

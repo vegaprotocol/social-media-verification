@@ -12,6 +12,7 @@ from common import (
     SMVConfig,
     TweetInvalidFormatError,
     TweetInvalidSignatureError,
+    BlocklistPartyError,
 )
 from services.onelog import onelog_json, OneLog
 
@@ -143,6 +144,17 @@ def process_tweet(
                 tweet_id=tweet.tweet_id,
                 reply=config.twitter_reply_message_invalid_signature,
                 status="INVALID_SIGNATURE",
+            )
+        except BlocklistPartyError as err:
+            onelog.info(error="Party blocked", status="FAILED")
+            # reply on twitter
+            # Do not reply to user on Twitter
+            # update DB
+            storage.upsert_tweet_record(
+                tweet_id=tweet.tweet_id,
+                reply="",
+                status="BLOCKLISTED",
+                description=str(err),
             )
 
 

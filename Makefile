@@ -15,6 +15,10 @@ test:
 test-in-docker:
 	./scripts/test-in-docker.sh
 
+.PHONY: test-in-docker-compose
+test-in-docker-compose:
+	./scripts/test-in-docker-compose.sh
+
 .PHONY: tdd
 tdd:
 	./scripts/test-in-docker.sh ./scripts/test-tdd.sh
