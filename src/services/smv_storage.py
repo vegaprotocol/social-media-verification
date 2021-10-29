@@ -216,6 +216,9 @@ class SMVStorage(object):
             )
         )
 
+    def is_todo_tweet(self, tweet_id: int) -> bool:
+        return self.col_todo_tweets.count_documents({"tweet_id": tweet_id}) > 0
+
     def cleanup_todo_tweets(self) -> None:
         tweet_ids = [
             item["tweet_id"]

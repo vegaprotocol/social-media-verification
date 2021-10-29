@@ -17,6 +17,9 @@ def test_get_limit_results(smv_storage: SMVStorage):
 
     assert len(smv_storage.get_todo_tweets()) == 50
 
+    assert smv_storage.is_todo_tweet(10)
+    assert not smv_storage.is_todo_tweet(1000)
+
 
 @pytest.mark.skipif_no_mongodb
 def test_get_remove_duplicates(smv_storage: SMVStorage):
@@ -26,6 +29,8 @@ def test_get_remove_duplicates(smv_storage: SMVStorage):
     )
 
     assert sorted(smv_storage.get_todo_tweets()) == list(range(1, 20))
+    assert smv_storage.is_todo_tweet(10)
+    assert not smv_storage.is_todo_tweet(1000)
 
 
 @pytest.mark.skipif_no_mongodb
@@ -88,3 +93,7 @@ def test_cleanup(
 
     # Validate after
     assert sorted(smv_storage.get_todo_tweets()) == sorted(todo_after_cleanup)
+    for tweet_id in todo_after_cleanup:
+        assert smv_storage.is_todo_tweet(tweet_id)
+    for tweet_id in tweet_ids:
+        assert not smv_storage.is_todo_tweet(tweet_id)
