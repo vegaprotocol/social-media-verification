@@ -192,6 +192,10 @@ def handle_process_tweets(
             500,
         )
 
+    storage.cleanup_todo_tweets()
+    for tweet_id in storage.get_todo_tweets():
+        tweets.append(twclient.get_by_id(tweet_id))
+
     # Process tweets one by one from oldest to newest
     try:
         processed_count = 0

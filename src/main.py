@@ -6,6 +6,7 @@ from handlers import (
     handle_parties,
     handle_process_tweets,
     handle_statistics,
+    handle_add_tweet,
 )
 from services.twitter import TwitterClient
 
@@ -33,6 +34,12 @@ TWCLIENT = TwitterClient(
 def router(request: flask.Request):
     if request.path.endswith("/parties"):
         return handle_parties(storage=STORAGE)
+    elif request.path.endswith("/add-tweet"):
+        tweet_id: str = request.args.get("id")
+        handle_add_tweet(
+            storage=STORAGE,
+            tweet_id=tweet_id,
+        )
     elif request.path.endswith("/process-tweets"):
         return handle_process_tweets(
             storage=STORAGE,

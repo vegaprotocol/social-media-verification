@@ -1,4 +1,4 @@
-from typing import Any, Optional, Dict
+from typing import Any, Optional, Dict, List
 import pymongo
 from pymongo import database
 from pymongo.collection import Collection
@@ -28,6 +28,10 @@ class SMVStorage(object):
     @property
     def col_tweets(self) -> Collection:
         return self.db.get_collection("tweets")
+
+    @property
+    def col_todo_tweets(self) -> Collection:
+        return self.db.get_collection("todo_tweets")
 
     def get_parties(self):
         return [
@@ -196,3 +200,40 @@ class SMVStorage(object):
 
     def get_tweet_count(self) -> int:
         return self.col_tweets.count_documents({})
+
+    def add_todo_tweet(self, tweet_id: int):
+        self.col_todo_tweets.insert_one(
+            {"tweet_id": tweet_id}
+        )
+
+    def get_todo_tweets(self, limit: int = 50) -> List[int]:
+        return list(set([
+            item["tweet_id"]
+            for item in self.col_todo_tweets.find(
+                limit=limit,
+            )
+        ]))
+
+    def cleanup_todo_tweets(self) -> None:
+        tweet_ids = [
+            item["tweet_id"]
+            for item in self.col_todo_tweets.aggregate([
+                {
+                    "$lookup": {
+                        "from": "tweets",
+                        "localField": "tweet_id",
+                        "foreignField": "tweet_id",
+                        "as": "processed_tweets",
+                    }
+                },
+                {
+                    "$match": {
+                        "processed_tweets": { "$ne": [] }
+                    }
+                }
+            ])
+        ]
+        if tweet_ids:
+            self.col_todo_tweets.delete_many(
+                {'tweet_id':{'$in': tweet_ids}}
+            )
