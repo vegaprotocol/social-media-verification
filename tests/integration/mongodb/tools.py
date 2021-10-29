@@ -23,11 +23,20 @@ def _setup_collection(
 def setup_parties_collection(smv_storage: SMVStorage, parties: List = None):
     _setup_collection("identities", smv_storage, parties)
 
+
 def setup_tweets_collection(smv_storage: SMVStorage, tweets: List = None):
     _setup_collection("tweets", smv_storage, tweets)
 
-def setup_todo_tweets_collection(smv_sotrage: SMVStorage, tweet_ids: List[int] = None):
-    _setup_collection("todo_tweets", smv_sotrage, [{"tweet_id": tid} for tid in tweet_ids])
+
+def setup_todo_tweets_collection(
+    smv_sotrage: SMVStorage,
+    tweet_ids: List[int] = None,
+):
+    _setup_collection(
+        "todo_tweets",
+        smv_sotrage,
+        [{"tweet_id": tid} for tid in tweet_ids],
+    )
 
 
 def random_vega_address() -> str:
@@ -87,28 +96,25 @@ def random_party(
         "twitter_user_id": twitter_user_id,
     }
 
+
 def random_tweet(
     tweet_id: int = None,
     user_id: int = None,
     screen_name: str = None,
     text: str = None,
     last_modified: datetime = None,
-    reply: str = '',
-    status: str = 'PASSED',
-    description: str = '',
+    reply: str = "",
+    status: str = "PASSED",
+    description: str = "",
 ):
     if not tweet_id:
-        tweet_id = random.SystemRandom().randint(
-            10 ** 19, 10 ** 20
-        )
+        tweet_id = random.SystemRandom().randint(10 ** 19, 10 ** 20)
     if not screen_name:
         screen_name = random_string()
     if not last_modified:
         last_modified = random_date()
     if not user_id:
-        user_id = random.SystemRandom().randint(
-            10 ** 5, 9223372036854775807
-        )
+        user_id = random.SystemRandom().randint(10 ** 5, 9223372036854775807)
     if not text:
         text = random_text()
 

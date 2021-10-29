@@ -202,38 +202,36 @@ class SMVStorage(object):
         return self.col_tweets.count_documents({})
 
     def add_todo_tweet(self, tweet_id: int):
-        self.col_todo_tweets.insert_one(
-            {"tweet_id": tweet_id}
-        )
+        self.col_todo_tweets.insert_one({"tweet_id": tweet_id})
 
     def get_todo_tweets(self, limit: int = 50) -> List[int]:
-        return list(set([
-            item["tweet_id"]
-            for item in self.col_todo_tweets.find(
-                limit=limit,
+        return list(
+            set(
+                [
+                    item["tweet_id"]
+                    for item in self.col_todo_tweets.find(
+                        limit=limit,
+                    )
+                ]
             )
-        ]))
+        )
 
     def cleanup_todo_tweets(self) -> None:
         tweet_ids = [
             item["tweet_id"]
-            for item in self.col_todo_tweets.aggregate([
-                {
-                    "$lookup": {
-                        "from": "tweets",
-                        "localField": "tweet_id",
-                        "foreignField": "tweet_id",
-                        "as": "processed_tweets",
-                    }
-                },
-                {
-                    "$match": {
-                        "processed_tweets": { "$ne": [] }
-                    }
-                }
-            ])
+            for item in self.col_todo_tweets.aggregate(
+                [
+                    {
+                        "$lookup": {
+                            "from": "tweets",
+                            "localField": "tweet_id",
+                            "foreignField": "tweet_id",
+                            "as": "processed_tweets",
+                        }
+                    },
+                    {"$match": {"processed_tweets": {"$ne": []}}},
+                ]
+            )
         ]
         if tweet_ids:
-            self.col_todo_tweets.delete_many(
-                {'tweet_id':{'$in': tweet_ids}}
-            )
+            self.col_todo_tweets.delete_many({"tweet_id": {"$in": tweet_ids}})

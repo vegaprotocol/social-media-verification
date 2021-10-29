@@ -100,9 +100,9 @@ class TwitterClient(object):
 
         try:
             result = self.twapi.show_status(
-                id = tweet_id,
-                include_entities = True,
-                tweet_mode = "extended",
+                id=tweet_id,
+                include_entities=True,
+                tweet_mode="extended",
             )
 
             return Tweet(
