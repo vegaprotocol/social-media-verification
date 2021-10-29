@@ -1,7 +1,8 @@
-from typing import Iterator, List
+from typing import Iterator, List, Optional
 import os
 import json
 from twython import Twython
+from twython.exceptions import TwythonError
 
 from .secret import get_json_secret_from_gcp
 
@@ -86,6 +87,34 @@ class TwitterClient(object):
             self._access_token,
             self._access_secret,
         )
+
+    def get_by_id(self, tweet_id: int) -> Optional[Tweet]:
+        """Returns one tweet specified by id.
+
+        Args:
+            tweet_id (int): The id of the tweet to return
+
+        Returns:
+            Tweet or None
+        """
+
+        try:
+            result = self.twapi.show_status(
+                id=tweet_id,
+                include_entities=True,
+                tweet_mode="extended",
+            )
+
+            return Tweet(
+                tweet_id=result["id"],
+                user_id=result["user"]["id"],
+                user_screen_name=result["user"]["screen_name"],
+                full_text=result["full_text"],
+            )
+        except TwythonError:
+            pass
+
+        return None
 
     def search(
         self,
