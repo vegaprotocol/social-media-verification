@@ -37,6 +37,25 @@ def handle_tweet(
     processed_tweet = storage.get_tweet_record(tweet_id)
     if processed_tweet:
         del processed_tweet["_id"]
+        # add extra info
+        description = {
+            "PROCESSING": "The tweet is being processed.",
+            "PASSED": "Successful sign up",
+            "INVALID_FORMAT": "The tweet does not look like a sign up tweet.",
+            "INVALID_SIGNATURE": (
+                "Signature does not match user's twitter handle: make sure"
+                " user signed their twitter handle not name, i.e."
+                " @twitter_handle - it starts with @. Other common mistakes"
+                " are typo, wrong lower-upper case."
+            ),
+            "BLOCKLISTED": (
+                "User tried to do something not allowed, e.g. transfer Wallet"
+                " to another user"
+            ),
+        }
+        processed_tweet["status_description"] = description.get(
+            processed_tweet["status"]
+        )
         return flask.jsonify(
             {
                 "status": "success",
