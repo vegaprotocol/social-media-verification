@@ -36,6 +36,7 @@ def handle_tweet(
 
     processed_tweet = storage.get_tweet_record(tweet_id)
     if processed_tweet:
+        del processed_tweet["_id"]
         return flask.jsonify(
             {
                 "status": "success",

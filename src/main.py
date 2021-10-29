@@ -36,7 +36,7 @@ def router(request: flask.Request):
         return handle_parties(storage=STORAGE)
     elif request.path.endswith("/tweet"):
         tweet_id: str = request.args.get("id")
-        handle_tweet(
+        return handle_tweet(
             storage=STORAGE,
             tweet_id=tweet_id,
         )
