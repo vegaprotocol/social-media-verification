@@ -1,4 +1,5 @@
 import flask
+from flask import current_app as app
 import os
 from common import SMVConfig
 from services.smv_storage import SMVStorage
@@ -6,8 +7,11 @@ from handlers import (
     handle_parties,
     handle_process_tweets,
     handle_statistics,
+    handle_tweet,
 )
 from services.twitter import TwitterClient
+
+app.config["JSONIFY_PRETTYPRINT_REGULAR"] = True
 
 CONFIG = SMVConfig(
     twitter_search_text=os.environ["TWITTER_SEARCH_TEXT"],
@@ -33,6 +37,12 @@ TWCLIENT = TwitterClient(
 def router(request: flask.Request):
     if request.path.endswith("/parties"):
         return handle_parties(storage=STORAGE)
+    elif request.path.endswith("/tweet"):
+        tweet_id: str = request.args.get("id")
+        return handle_tweet(
+            storage=STORAGE,
+            tweet_id=tweet_id,
+        )
     elif request.path.endswith("/process-tweets"):
         return handle_process_tweets(
             storage=STORAGE,
