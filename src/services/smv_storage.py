@@ -48,9 +48,7 @@ class SMVStorage(object):
                     item["created"].replace(tzinfo=timezone.utc).timestamp()
                 ),
             }
-            for item in self.col_identities.find(
-                cursor_type=CursorType.EXHAUST
-            )
+            for item in self.col_identities.find()
             if item.get("blocked", None) is None
         ]
 
